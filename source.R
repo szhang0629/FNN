@@ -1,0 +1,33 @@
+library(fda)
+library(Deriv)
+library(MASS)
+library(tidyverse)
+# library(R.utils)
+# 
+# sourceDirectory("Data")
+# sourceDirectory("FNN")
+
+source('Data/gdata.R')
+source('Data/data_input.R')
+source('Data/fun_output.R')
+source('Data/data_output.R')
+# source('Data/f2n.R')
+
+# source('LM/error_lm.R')
+# source('LM/error_flm.R')
+
+source('FNN/func.R')
+source('FNN/f2m.R')
+source('FNN/cost.R')
+source('FNN/fnn.R')
+# source('FNN/fnn_es.R')
+# source('FNN/fnn_con.R')
+source('FNN/fnn_p.R')
+source('FNN/update.R')
+source('FNN/predict.R')
+source('FNN/init.R')
+source('FNN/forw_prop.R')
+source('FNN/back_prop.R')
+
+source('Common/common.R')
+source('Common/divide.R')

@@ -5,6 +5,7 @@ gData <- function(index, noise = 0.1, n = 200, p = 500, loc = 0.5, fct.){
   fct <- Fun.Output(fct.)
   f <- fct(Data.$G, Data.$pos, index)
   Y <- Data.Output(f, loc, noise)
-  Data <- list(G = Data.$G, f = f, Y = Y, pos = Data.$pos)
+  # Data <- list(G = Data.$G, f = f, Y = Y, pos = Data.$pos)
+  Data <- list(G = Data.$G, Y = cbind(loc, Y), pos = Data.$pos)
   return(Data)
 }

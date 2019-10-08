@@ -1,41 +1,34 @@
-FNN.p <- function(Y, E, output, Bases, A, A.prime, lambda., P, int){
-  I <- length(lambda.)
-  if (I > 1) {
-    groups <- divide(Y, names = c("subtr", "valid"))
-    if (is.list(Y))
-      list2env(split(mget(c('Y', 'E', 'Bases')), groups), envir = environment())
-    else {
-      list2env(split(mget(c('Y', 'E')), groups), envir = environment())
-      Bases.subtr <- Bases
-      Bases.valid <- Bases
-    }
-    error. <- rep(0, I)
-    for (i in 1:I) {
-      Ac <- FNN.p.(Y.subtr, E.subtr, output, Bases.subtr, A, A.prime,
-                     lambda.[[i]], P, int)$Ac
-      error.[i] <- cost(Y.valid, Ac, E.valid, Bases.valid, A, int = int)
-    }
-    lambda <- lambda.[which.min(error.)]
-  } else lambda <- lambda.
-  Ac <- FNN.p.(Y, E, output, Bases, A, A.prime, lambda, P, int)$Ac
-  return(list(Ac = Ac, lambda = lambda))
-}
-FNN.p. <- function(Y, E, output, Bases, A, A.prime, lambda, P, int) {
+FNN.p. <- function(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int) {
+  idy <- idx.names(subset(Y, select = -c(PTID, Y)))
+  Bases <- Bf2m(Bases, pos, subs(subset(Y, select = -c(PTID, Y)), 
+                                 match(1:max(idy), idy)))
+  idx <- idx.names(Y$PTID, rownames(G))
+  # Y <- data.frame(Y = Y$Y, idx = idx, idy = idy)
+  id <- data.frame(idx = idx, idy = idy)
+  Y <- Y$Y
+  
   j <- 0
+  lambda <- lambda/nrow(id)
   cache <- list(k = 0, error. = Inf)
   while (cache$k < 30) { 
     if (j %% 10 == 0) {
-      error <- cost(Y, output$Ac, E, Bases, A, int = int)
-      # print(error)
-      if (is.nan(error)) break
+      error <- cost.(Y, pred.(output$Ac, X, G, A, Bases, int, id))
+      if (j %% 1000 == 0) {
+        cat(paste(error, j))
+        cat("\n")
+      }
+      if (is.nan(error))
+        break
       if (error < (cache$error. * 0.999))
       # if (error < (cache$error.))
         cache <- list(Ac. = output$Ac, j. = j, k = 0, error. = error)
       else cache$k <- cache$k + 1
     }
-    output <- FNN.(Y, E, output, Bases, A, A.prime, lambda, P, int)
+    layers <- forw.prop(output$Ac, X, G, Bases, A, int = int, id)
+    grads <- back.prop(Y, output$Ac, layers, Bases, A, A.prime, int = int, id)
+    output <- adadelta(output, grads, lambda, P)
     j <- j + 1
   }
-  cat(j-1, "\n")
-  return(list(Ac = cache$Ac., error = cache$error.))
+  cat(j - 1, "\n")
+  return(list(Ac = cache$Ac., error = cache$error., j = cache$j.))
 }

@@ -1,21 +1,15 @@
-pred. <- function(Ac, E, A, Bases = NULL, int = T){ 
-  layers <- forw.prop(E, Ac, Bases, A, int = int)
-  result <- layers[[length(layers)]]$E
-  return(result)
+pred. <- function(Ac, X, G, A, Bases, int, loc){ 
+  layers <- forw.prop(Ac, X, G, Bases, A, int, loc)
+  return(layers[[length(layers)]]$G)
 }
-pred <- function(Ac, E, A, Bases = NULL, pos = NULL, loc = NULL, int = NULL){
-  int <- int.fun(Bases, int)
-  Bases <- Bf2m(Bases, pos, loc)
-  if (is.list(Bases[[length(Bases)]])) {
-    result <- list()
-    Bases.z <- Bases[[length(Bases)]]
-    N <- length(Bases.z)
+pred <- function(Ac, X, G, A, Bases = NULL, pos = NULL, loc = NULL, int = NULL){
+  if (!is.null(pos)) {
     int <- int.fun(Bases, int)
-    for (i in 1:N) {
-      Bases[[length(Bases)]] <- Bases.z[[i]]
-      result[[i]] <- pred.(Ac, subs(E, i, N), A, Bases, int)
-    }
-  } else 
-    result <- pred.(Ac, E, A, Bases, int = int)
-  return(result)
+    idy <- idx.names(subset(loc, select = -PTID))
+    Bases <- Bf2m(Bases, pos, subs(subset(loc, select = -PTID), 
+                                   match(1:max(idy), idy)))
+    idx <- idx.names(loc$PTID, rownames(G))
+    loc <- data.frame(idx = idx, idy = idy)
+  }
+  return(pred.(Ac, X, G, A, Bases, int = int, loc))
 }

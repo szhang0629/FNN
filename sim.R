@@ -1,53 +1,65 @@
 source("source.R")
-source("LM/flm.R")
-source("LM/flm2.R")
-sim <- function(seed, vari = 1, p = 200, D = 2, lambda. = 10^(-2:1)) {
-  vari. <- c("method", "train", "test", "cor1", "cor2", "lambda")
-  n <- 250
+sim <- function(seed, vari = 1, p = 200, D = 3, lambda. = 10^(-1:2)) {
+  vari. <- c("method", "train", "test", "cor1", "cor2", "lambda", "j", "nl")
   ipath <- paste0("../4_Output/", p, "/", vari, "/", seed, ".csv")
   Output.(rbind(vari.), ipath)
+  
+  n <- 250
   set.seed(seed)
-  loc <- runif(20)
+  loc <- data.frame(PTID = rep(1:n, each = 20), loc = runif(20*n))
   Data <- gData(seed, noise = switch(vari, 0.3, 0.6, 1.2), n, p, loc, "polyno")
+  # Data <- gData(seed, noise = 0, n, p, loc, "polyno")
   list2env(Data, envir = environment())
-  groups <- divide(Y, seed, names = c("train", "test"))
-  list2env(split(mget(c("Y", "G")), groups), envir = environment())
-  nz <- ceiling(ncol(G.train)*(1-exp(-nrow(G.train)/ncol(G.train))))
-  # bb0 <- cbb(norder = 5, pos, nbasis = nz)
-  bb0 <- cbb(norder = ceiling(sqrt(nz)), pos, nbasis = nz)
-  bbz <- cbb(norder = 5, loc, nbasis = length(loc))
-  if (!("FLM1" %in% (read.csv(ipath)$method)))
-    # apply(data[ , cols ], 1 , paste0)
-    prt(cbind(Error.flm1(Y.train, G.train, Y.test, G.test, bb0, pos), 
-              method = "FLM1")[, vari.], ipath)
-  if (!("FLM2" %in% (read.csv(ipath)$method)))
-    prt(cbind(Error.flm2(Y.train, G.train, Y.test, G.test, pos, loc), 
-              method = "FLM2")[, vari.], ipath)
-  E.train. <- list(X = G.train, G = NULL)
-  E.test. <- list(X = G.test, G = NULL)
-  E.train <- list(X = NULL, G = G.train)
-  E.test <- list(X = NULL, G = G.test)
-  # bb0. <- cbb(norder = ceiling(sqrt(nz)), pos, nbasis = nz)
+  rownames(G) <- 1:n
+  Y$loc <- round(Y$loc, digits = 3)
+  groups <- divide(Y$PTID, seed, "name")
+  list2env(split(mget(c('Y', 'G')), groups), envir = environment())
+  
   A <- c(rep(list(sigmoid), D - 1), list(linear))
-  method1 <- paste0("NN", D-1)
-  method2 <- paste0("FF", D-1)
-  K <- round(ncol(G.train)^(1/3) * length(loc)^(2/3))
-  if (!(method1 %in% (read.csv(ipath)$method))) {
-    Bases.nn <- c(list(NULL), as.list(rep(K, D - 1)), list(length(loc)))
-    error.nn <- Error.fnn(Y.train, E.train., NULL, Y.test, E.test., NULL,
-                          pos, Bases.nn, A = A, lambda. = lambda.)
-    prt(cbind(error.nn, method = method1)[, vari.], ipath)
-  }
-  if (!(method2 %in% (read.csv(ipath)$method))) {
-    bb1 <- create.bspline.basis(norder = 5, nbasis = K)
-    Bases.fn <- c(list(bb0), rep(list(bb1), D - 1), list(bbz))
-    error.fn <- Error.fnn(Y.train, E.train, loc, Y.test, E.test, loc, 
-                          pos, Bases.fn, A = A, lambda. = lambda./1e5)
-    prt(cbind(error.fn, method = method2)[, vari.], ipath)
-  }
+  method2 <- paste0("FN", D - 1)
+  # if (!(method2 %in% (read.csv(ipath)$method))) {
+  la <- ceiling(ncol(G.train)*(1 - exp(-rankMatrix(G.train)/ncol(G.train))))
+  lz <- 20
+  l <- round(ncol(G.train)^(1/3) * 20^(2/3))
+  # if (!(method2 %in% (read.csv(ipath)$method))) {
+  bb0 <- cbb(pos, nbasis = la)
+  bb1 <- create.bspline.basis(norder = round(sqrt(l)), nbasis = l)
+  
+  bbz <- cbb(c(0, unlist(Y.train$loc), 1), nbasis = lz)
+  Bases.fn <- c(list(bb0), rep(list(bb1), D - 1), list(bbz))
+  error.fn <- Error.fnn(Y.train, X.train = NULL, G.train, Y.test, X.test = NULL,
+                        G.test, pos, Bases.fn, A = A, lambda. = lambda.)
+  prt(cbind(error.fn, method = method2, nl = paste(la, l, lz))[, vari.], 
+      ipath)
+  # }
   print(read.csv(ipath), row.names = FALSE, digits = 4)
 }
-# error.lm <- Error.lm(Y.train, G.train, Y.test, G.test, pos)
-# prt(cbind(error.lm, K = 0, valid = 0, lambda = 0)[, vari.], ipath)
-# error.flm <- Error.flm(Y.train, G.train, Y.test, G.test, pos, loc)
-# prt(cbind(error.flm, K = 0, valid = 0, lambda = 0)[, vari.], ipath)
+integ <- function(D, B, int = T){
+  if (is.null(D))
+    return(NULL)
+  # if (int) return(as.matrix(D) %*% B / nrow(B) * sqrt(ncol(B)))
+  if (int) return(as.matrix(D) %*% B / nrow(B))
+  else return(as.matrix(D) %*% B)
+}
+pen.fun <- function(bb, lambda = 1, order = 2) {
+  if (is.basis(bb)) {
+    if (order == 2)
+      # return(bb$nbasis*bsplinepen(bb, order)/1e7)
+      # return(bsplinepen(bb, order)/(sum(diag(bsplinepen(bb, 0)))^2)/10^2)
+      # return(bb$nbasis*bsplinepen(bb, order)/sum(diag(bsplinepen(bb, 0)))/1e8)
+      return(lambda*bb$nbasis*bsplinepen(bb, order) /
+               sum(diag(bsplinepen(bb, 0))) /1e6)
+    else return(bb$nbasis*bsplinepen(bb, order)/sum(diag(bsplinepen(bb, 0))))
+  } else return(1)
+}
+f2m. <- function(bb, loc) {
+  if (!is.data.frame(loc)) {
+    # coef <- bb$nbasis^(1/2)
+    # coef <- 1/sum(diag(bsplinepen(bb, 0)))
+    coef <- (bb$nbasis/sum(diag(bsplinepen(bb, 0))))^(1/2)
+    B <- eval.basis(loc, bb) * coef
+  } else if (length(loc) == 1 && is.data.frame(loc))
+    B <- f2m.(bb, unlist(loc))
+  else B <- (f2m.(bb, loc$loc) - f2m.(bb, loc$loc0))
+  return(B)
+}

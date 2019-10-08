@@ -1,20 +1,63 @@
-cost <- function(Y, Ac, E, Bases, A, pos = NULL, loc = NULL, X = NULL, int = T){
-  Bases <- Bf2m(Bases, pos, loc)
-  Y.hat <- pred(Ac, E, A, Bases = Bases, int = int)
-  cost <- cost.(Y, Y.hat)
-  return(cost)
+cost <- function(Y, Ac, X, G, Bases, A, pos = NULL, int = T){
+  # Bases <- Bf2m(Bases, pos, Y$loc)
+  Y.hat <- pred(Ac, X, G, A, Bases = Bases, pos, int = int, 
+                loc = subset(Y, select = -Y))
+  return(cost.(Y$Y, Y.hat))
 }
-Error.fnn <- function(Y.train, E.train, loc.train, Y.test, E.test, loc.test,
+Error.fnn <- function(Y.train, X.train, G.train, Y.test, X.test, G.test, 
                       pos, Bases, A, lambda.) {
-  fnn.p <- FNN(Y.train, E.train, loc.train, pos, Bases, A = A, 
-               lambda. = lambda.)
-  Y.train. <- pred(fnn.p$Ac, E.train, A, Bases, pos, loc.train)
-  Y.test. <- pred(fnn.p$Ac, E.test, A, Bases, pos, loc.test)
-  train <- cost.(Y.train, Y.train.)
-  test <- cost.(Y.test, Y.test.)
-  cor1 <- cor(c(unlist(Y.train)), c(unlist(Y.train.)))
-  cor2 <- cor(c(unlist(Y.test)), c(unlist(Y.test.)))
-  result <- data.frame(train = train, test = test, lambda = fnn.p$lambda, 
-                       cor1 = cor1, cor2 = cor2)
+  fnn.p <- FNN.p(Y.train, X.train, G.train, pos, A = A, Bases, lambda. = lambda.)
+  Y.train. <- pred(fnn.p$Ac, X.train, G.train, A, Bases, pos, 
+                   loc = subset(Y.train, select = -Y))
+  Y.test. <- pred(fnn.p$Ac, X.test, G.test, A, Bases, pos, 
+                  loc = subset(Y.test, select = -Y))
+  train <- cost.(Y.train$Y, Y.train.)
+  test <- cost.(Y.test$Y, Y.test.)
+  cor1 <- cor(Y.train$Y, Y.train.)
+  cor2 <- cor(Y.test$Y, Y.test.)
+  result <- data.frame(train = train, test = test, cor1 = cor1, cor2 = cor2, 
+                       lambda = fnn.p$lambda, j = fnn.p$j)
   return(result)
+}
+FNN.p <- function(Y, X, G, pos, A, Bases, lambda.){
+  P <- pen.Bases(Bases)
+  int <- int.fun(Bases)
+  # Bases <- Bf2m(Bases., pos, subset(Y, select = -c(PTID, Y)))
+  Ac <- init(Bases, seed = 1, X.col = ncol(X))
+  e0 <- init(Bases, X.col = ncol(X), para.ub = 0)
+  output <- list(Ac = Ac, eg. = e0, ex. = e0)
+  A.prime <- lapply(A, Deriv)
+  I <- length(lambda.)
+  if (I > 1) {
+    groups <- divide(Y$PTID, type = "name", names = c("subtr", "valid"))
+    list2env(split(mget(c('Y', 'X', 'G')), groups), envir = environment())
+    valid. <- rep(0, I)
+    subtr. <- rep(0, I)
+    j. <- rep(0, I)
+    for (i in 1:I) {
+      fnn.p <- FNN.p.(Y.subtr, X.subtr, G.subtr, output, Bases, pos, A, A.prime,
+                   lambda.[[i]], P, int)
+      valid.[i] <- cost(Y.valid, fnn.p$Ac, X.valid, G.valid, Bases, A, pos, int)
+      subtr.[i] <- fnn.p$error
+      j.[i] <- fnn.p$j
+    }
+    print(data.frame(j., subtr., valid.))
+    lambda <- lambda.[which.min(valid.)]
+  } else lambda <- lambda.
+  fnn.p <- FNN.p.(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int)
+  return(list(Ac = fnn.p$Ac, lambda = lambda, j = fnn.p$j))
+}
+idx.names <- function(df, nms = NULL) {
+  if (is.null(nms)) {
+    if (is.data.frame(df)) {
+      if (length(df) > 1) df <- 1:nrow(df)
+      else df <- idx.names(unlist(df), unique(unlist(df)))
+    } else df <- idx.names(df, unique(df))
+  } else {
+    nms <- unlist(nms)
+    df. <- 1:length(nms)
+    names(df.) <- nms
+    df <- df.[as.character(df)]
+  }
+  return(df)
 }

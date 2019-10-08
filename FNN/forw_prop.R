@@ -1,28 +1,26 @@
-forw.prop <- function(E, Ac, Bases, A, int = T){
+forw.prop <- function(Ac, X, G, Bases, A, int, loc = NULL){
   layers <- list()
-  for (i in 1:length(A)) {
-    cache <- forw.prop.(E, Ac[[i]], Bases[[i]], Bases[[i + 1]], 
-                        A[[i]], int = int[[i]])
-    E <- cache$E
-    layers[[i]] <- cache
+  dp <- length(A)
+  layers[[1]] <- forw.prop.(Ac[[1]], G, Bases[[1]], Bases[[2]], 
+                            A[[1]], int = int[[1]], X)
+  if (dp > 2) {
+    for (i in 2:(dp - 1)) 
+      layers[[i]] <- forw.prop.(Ac[[i]], layers[[i - 1]]$G, Bases[[i]], 
+                                Bases[[i + 1]], A[[i]], int[[i]])
   }
+  layers[[dp]] <- forw.prop.(Ac[[dp]], layers[[dp - 1]]$G, Bases[[dp]], 
+                             Bases[[dp + 1]], A[[dp]], int[[dp]], loc = loc)
   return(layers)
 }
-forw.prop. <- function(E, Ac, B0, B, A, int = T){
-  if (is.list(E)) {
-    G <- integ(E$G, B0, int = int)
-    D <- cbind(E$X, G)
-  }  else D <- integ(E, B0, int = int)
+forw.prop. <- function(Ac, G, B0, B, A, int, X = NULL, loc = NULL){
+  G <- integ(G, B0, int = int)
+  D <- cbind(X, G)
   C <- D %*% Ac[-1, ] + rep.row(Ac[1, ], nrow(D))
-  if (is.list(B)) {
-    E <- list()
-    for (i in 1:length(B)) 
-      E[[i]] <- A(C[i, , drop = FALSE] %*% t(B[[i]]))
-    cache <- mget(c('E', 'D'))
-  } else {
+  if (is.null(loc)) 
     H <- C %*% t(B)
-    E <- A(H)
-    cache <- mget(c('E', 'D', 'H'))
-  }
+  else 
+    H <- rowSums(C[loc$idx, , drop = FALSE] * B[loc$idy, , drop = FALSE])
+  G <- A(H)
+  cache <- mget(c('G', 'D', 'H'))
   return(cache)
 }

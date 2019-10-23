@@ -13,10 +13,10 @@ FNN.p. <- function(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int) {
   while (cache$k < 30) { 
     if (j %% 10 == 0) {
       error <- cost.(Y, pred.(output$Ac, X, G, A, Bases, int, id))
-      if (j %% 1000 == 0) {
-        cat(paste(error, j))
-        cat("\n")
-      }
+      # if (j %% 1000 == 0) {
+      #   cat(paste(error, j))
+      #   cat("\n")
+      # }
       if (is.nan(error))
         break
       if (error < (cache$error. * 0.999))
@@ -29,6 +29,6 @@ FNN.p. <- function(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int) {
     output <- adadelta(output, grads, lambda, P)
     j <- j + 1
   }
-  cat(j - 1, "\n")
+  # cat(j - 1, "\n")
   return(list(Ac = cache$Ac., error = cache$error., j = cache$j.))
 }

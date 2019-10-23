@@ -1,5 +1,5 @@
 source("source.R")
-sim <- function(seed, vari = 1, p = 200, D = 3, lambda. = 10^(-1:2)) {
+sim <- function(seed, vari = 1, p = 200, D = 3, lambda. = 10^(-2:1)) {
   vari. <- c("method", "train", "test", "cor1", "cor2", "lambda", "j", "nl")
   ipath <- paste0("../4_Output/", p, "/", vari, "/", seed, ".csv")
   Output.(rbind(vari.), ipath)
@@ -11,6 +11,7 @@ sim <- function(seed, vari = 1, p = 200, D = 3, lambda. = 10^(-1:2)) {
   # Data <- gData(seed, noise = 0, n, p, loc, "polyno")
   list2env(Data, envir = environment())
   rownames(G) <- 1:n
+  Y$loc <- 0.9 * Y$loc + 0.05
   Y$loc <- round(Y$loc, digits = 3)
   groups <- divide(Y$PTID, seed, "name")
   list2env(split(mget(c('Y', 'G')), groups), envir = environment())
@@ -34,29 +35,24 @@ sim <- function(seed, vari = 1, p = 200, D = 3, lambda. = 10^(-1:2)) {
   # }
   print(read.csv(ipath), row.names = FALSE, digits = 4)
 }
-integ <- function(D, B, int = T){
-  if (is.null(D))
-    return(NULL)
-  # if (int) return(as.matrix(D) %*% B / nrow(B) * sqrt(ncol(B)))
-  if (int) return(as.matrix(D) %*% B / nrow(B))
-  else return(as.matrix(D) %*% B)
-}
-pen.fun <- function(bb, lambda = 1, order = 2) {
+pen.fun <- function(bb, order = 2) {
   if (is.basis(bb)) {
     if (order == 2)
       # return(bb$nbasis*bsplinepen(bb, order)/1e7)
       # return(bsplinepen(bb, order)/(sum(diag(bsplinepen(bb, 0)))^2)/10^2)
-      # return(bb$nbasis*bsplinepen(bb, order)/sum(diag(bsplinepen(bb, 0)))/1e8)
-      return(lambda*bb$nbasis*bsplinepen(bb, order) /
-               sum(diag(bsplinepen(bb, 0))) /1e6)
-    else return(bb$nbasis*bsplinepen(bb, order)/sum(diag(bsplinepen(bb, 0))))
+      return(bsplinepen(bb, order)/1e11)
+    # return(bb$nbasis*bsplinepen(bb, order) /
+    #          sum(diag(bsplinepen(bb, 0))) /1e6)
+    else 
+      return(bb$nbasis*bsplinepen(bb, order))
+    # return(bb$nbasis*bsplinepen(bb, order)/sum(diag(bsplinepen(bb, 0))))
   } else return(1)
 }
 f2m. <- function(bb, loc) {
   if (!is.data.frame(loc)) {
-    # coef <- bb$nbasis^(1/2)
+    coef <- bb$nbasis^(1/2)
     # coef <- 1/sum(diag(bsplinepen(bb, 0)))
-    coef <- (bb$nbasis/sum(diag(bsplinepen(bb, 0))))^(1/2)
+    # coef <- (bb$nbasis/sum(diag(bsplinepen(bb, 0))))^(1/2)
     B <- eval.basis(loc, bb) * coef
   } else if (length(loc) == 1 && is.data.frame(loc))
     B <- f2m.(bb, unlist(loc))

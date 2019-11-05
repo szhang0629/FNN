@@ -14,13 +14,14 @@ Fun.Output.2 <- function(G, pos, index = NULL, n = 100,
   sample2 <- sample(1:bb2$nbasis, n, replace = T)
   B0 <- eval.basis(pos, bb0)
   # force(G)
-  func <- function(x1, x2, i = 1:nrow(G)) {
+  func <- function(x1 = rep(0.5, nrow(G)), x2 = rep(0.5, nrow(G)), 
+                   i = 1:nrow(G)) {
     G. <- G[i, ,drop = FALSE]
     y <- 0
     for (j in 1:n) {
-      y <- y + cf[j] * (G.^ef[j] %*% B0[, sample0[j], drop = F]) %*%
-        (t(eval.basis(x1, bb1)[, sample1[j], drop = F]) *
-           t(eval.basis(x2, bb2)[, sample2[j], drop = F]))
+      y <- y + cf[j] * (G.^ef[j] %*% B0[, sample0[j], drop = F]) *
+        (eval.basis(x1, bb1)[, sample1[j], drop = F] *
+           eval.basis(x2, bb2)[, sample2[j], drop = F])
     }
     return(y)
   }
@@ -30,25 +31,28 @@ Fun.Output.2 <- function(G, pos, index = NULL, n = 100,
 }
 scale.func.2 <- function(f, iscale = T){
   if (iscale) {
+    n <- length(f())
     points <- (1:10 - 0.5) / 10
-    Y.fun <- f(rep(points, 10), rep(points, each  = 10))
+    Y.fun <- f(rep(points, 10*n), rep(points, each = 10*n), 
+               rep(1:n, each = 100))
     Y.mean <- mean(Y.fun)
     Y.sd <- sqrt(cost.(Y.fun, rep.row(colMeans(Y.fun), nrow(Y.fun))))
     force(Y.mean)
     force(Y.sd)
-    g <- function(x, i) {
-      y <- (f(x, i) - Y.mean) / Y.sd
+    g <- function(x, y, i) {
+      y <- (f(x, y, i) - Y.mean) / Y.sd
       return(y)
     }
     return(g)
   } else return(f)
 }
-gData.2 <- function(index, noise = 0.1, n = 200, p = 500, loc1, loc2){
+gData.2 <- function(index, noise = 0.1, n = 200, p = 500, loc){
   set.seed(index)
   Data. <- Data.Input(n = n, p = p)
   f <- Fun.Output.2(Data.$G, Data.$pos, index)
-  Y <- f(loc1, loc2)
+  Y <- f(loc$loc1, loc$loc2, loc$PTID)
   Y <- Y + array(rnorm(prod(dim(Y))), dim = dim(Y))*noise
-  Data <- list(G = Data.$G, f = f, Y = Y, pos = Data.$pos)
+  colnames(Y) <- "Y"
+  Data <- list(G = Data.$G, Y = cbind(loc, Y), pos = Data.$pos)
   return(Data)
 }

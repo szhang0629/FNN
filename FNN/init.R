@@ -29,8 +29,10 @@ init. <- function(x) {
     else
       return(length(x))
   }
-  if (is.list(x))
-    return(ncol(x[[1]]))
+  if (is.list(x)) {
+    if (is.basis(x[[1]])) return(x[[1]]$nbasis * x[[2]]$nbasis)
+    else return(ncol(x[[1]]))
+  }
 }
 int.fun <- function(fun, int = NULL) {
   if (is.null(int)) {
@@ -45,17 +47,6 @@ int.fun <- function(fun, int = NULL) {
     }
   } else
     return(int)
-}
-cbb <- function(pos, nbasis = NA, norder= NA, ratio = NA) {
-  pos <- sort(pos)
-  if (is.na(nbasis))
-    nbasis <- length(pos) * ratio
-  if (is.na(norder))
-    norder = round(sqrt(nbasis))
-  breaks. <- ceiling(seq(1, length(pos), length.out = nbasis - norder + 1))
-  breaks. <- pos[breaks.]
-  breaks <- (c(0, breaks.) + c(breaks., 1))/2
-  return(create.bspline.basis(breaks = breaks, norder = norder))
 }
 sigmoid <- function(x){
   (1 + exp(-x))^(-1)

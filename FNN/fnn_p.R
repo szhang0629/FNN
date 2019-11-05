@@ -8,19 +8,20 @@ FNN.p. <- function(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int) {
   Y <- Y$Y
   
   j <- 0
-  lambda <- lambda/nrow(id)
   cache <- list(k = 0, error. = Inf)
   while (cache$k < 30) { 
     if (j %% 10 == 0) {
-      error <- cost.(Y, pred.(output$Ac, X, G, A, Bases, int, id))
-      # if (j %% 1000 == 0) {
-      #   cat(paste(error, j))
-      #   cat("\n")
-      # }
+      error.g <- sum((Y - pred(output$Ac, X, G, A, Bases, loc = id, int = int))^2)
+      error.p <- Error.p(output$Ac, P, lambda)
+      error <- sum(error.g, error.p)
+      if (j %% 1000 == 0) {
+        cat(error.g, error.p, j)
+        cat("\n")
+      }
       if (is.nan(error))
         break
-      if (error < (cache$error. * 0.999))
-      # if (error < (cache$error.))
+      # if (error < (cache$error. * 0.999))
+      if (error < (cache$error.))
         cache <- list(Ac. = output$Ac, j. = j, k = 0, error. = error)
       else cache$k <- cache$k + 1
     }
@@ -32,3 +33,31 @@ FNN.p. <- function(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int) {
   # cat(j - 1, "\n")
   return(list(Ac = cache$Ac., error = cache$error., j = cache$j.))
 }
+idx.names <- function(df, nms = NULL) {
+  if (length(df) == 2 && is.data.frame(df))
+    df <- data.frame(paste(df[, 1], df[, 2]), 
+                     stringsAsFactors = FALSE)
+  if (is.null(nms)) 
+    df <- idx.names(df, unique(df))
+  else {
+    nms <- unlist(nms)
+    df. <- 1:length(nms)
+    names(df.) <- nms
+    df <- df.[as.character(unlist(df))]
+  }
+  return(df)
+}
+# idx.names <- function(df, nms = NULL) {
+#   if (is.null(nms)) {
+#     if (is.data.frame(df)) {
+#       if (length(df) > 1) df <- 1:nrow(df)
+#       else df <- idx.names(unlist(df), unique(unlist(df)))
+#     } else df <- idx.names(df, unique(df))
+#   } else {
+#     nms <- unlist(nms)
+#     df. <- 1:length(nms)
+#     names(df.) <- nms
+#     df <- df.[as.character(df)]
+#   }
+#   return(df)
+# }

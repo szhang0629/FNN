@@ -11,6 +11,9 @@ f2m <- function(bb, loc = NA) {
   }
   if (is.numeric(bb) && length(bb) == 1) # B3
     return(diag(nrow = bb, ncol = bb))
+  if (is.list(bb)) {
+    return(f2m(bb[[1]], loc$loc1) %x% f2m(bb[[2]], loc$loc2))
+  }
   if (is.null(bb))
     return(NULL)
 }
@@ -26,7 +29,27 @@ Bf2m <- function(fBases, pos = NA, loc = NA){
 integ <- function(D, B, int = T){
   if (is.null(D))
     return(NULL)
-  # if (int) return(as.matrix(D) %*% B / nrow(B) * sqrt(ncol(B)))
   if (int) return(as.matrix(D) %*% B / nrow(B))
   else return(as.matrix(D) %*% B)
+}
+loc.scale <- function(loc, bb, digit = NULL) {
+  if (bb$type == "bspline") {
+    s0 <- bb$params[norder(bb)]
+    s1 <- bb$params[length(bb$params) - norder(bb) + 1]
+  } else {
+    s0 <- 0
+    s1 <- 1
+  }
+  loc <- (s1 - s0) * (loc - min(loc)) / (max(loc) - min(loc)) + s0
+  if (!is.null(digit)) loc <- round(loc, digits = digit)
+}
+f2m. <- function(bb, loc) {
+  if (!is.data.frame(loc)) {
+    # coef <- bb$nbasis^(1/2)
+    # B <- eval.basis(loc, bb) * coef
+    B <- eval.basis(loc, bb)
+  } else if (length(loc) == 1 && is.data.frame(loc))
+    B <- f2m.(bb, unlist(loc))
+  else B <- (f2m.(bb, loc$loc) - f2m.(bb, loc$loc0))
+  return(B)
 }

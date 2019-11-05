@@ -16,7 +16,7 @@ divide <- function(IDs, seed = 629, type = "index", ratio = 0.8,
   assign(names[[2]], test)
   return(mget(names))
 }
-split <- function(objects, groups){
+sep <- function(objects, groups){
   name1 <- names(groups)[[1]]
   name2 <- names(groups)[[2]]
   names.in.list <- list()

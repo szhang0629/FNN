@@ -30,7 +30,7 @@ FNN.p <- function(Y, X, G, pos, A, Bases, lambda.){
   I <- length(lambda.)
   if (I > 1) {
     groups <- divide(Y$PTID, type = "name", names = c("subtr", "valid"))
-    list2env(split(mget(c('Y', 'X', 'G')), groups), envir = environment())
+    list2env(sep(mget(c('Y', 'X', 'G')), groups), envir = environment())
     valid. <- rep(0, I)
     subtr. <- rep(0, I)
     j. <- rep(0, I)
@@ -38,7 +38,7 @@ FNN.p <- function(Y, X, G, pos, A, Bases, lambda.){
       fnn.p <- FNN.p.(Y.subtr, X.subtr, G.subtr, output, Bases, pos, A, A.prime,
                    lambda.[[i]], P, int)
       valid.[i] <- cost(Y.valid, fnn.p$Ac, X.valid, G.valid, Bases, A, pos, int)
-      subtr.[i] <- fnn.p$error
+      subtr.[i] <- cost(Y.subtr, fnn.p$Ac, X.subtr, G.subtr, Bases, A, pos, int)
       j.[i] <- fnn.p$j
     }
     print(data.frame(j., subtr., valid.))
@@ -46,18 +46,4 @@ FNN.p <- function(Y, X, G, pos, A, Bases, lambda.){
   } else lambda <- lambda.
   fnn.p <- FNN.p.(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int)
   return(list(Ac = fnn.p$Ac, lambda = lambda, j = fnn.p$j))
-}
-idx.names <- function(df, nms = NULL) {
-  if (is.null(nms)) {
-    if (is.data.frame(df)) {
-      if (length(df) > 1) df <- 1:nrow(df)
-      else df <- idx.names(unlist(df), unique(unlist(df)))
-    } else df <- idx.names(df, unique(df))
-  } else {
-    nms <- unlist(nms)
-    df. <- 1:length(nms)
-    names(df.) <- nms
-    df <- df.[as.character(df)]
-  }
-  return(df)
 }

@@ -13,20 +13,15 @@ forw.prop <- function(Ac, X, G, Bases, A, int, loc = NULL){
   return(layers)
 }
 forw.prop. <- function(Ac, G, B0, B, A, int, X = NULL, loc = NULL){
-  G <- integ(G, B0, int = int)
-  D <- cbind(X, G)
-  C <- D %*% Ac[-1, ] + rep.row(Ac[1, ], nrow(D))
-  if (is.null(loc)) 
-    H <- C %*% t(B)
+  D <- cbind(matrix(rep(1, nrow(G)), nrow = nrow(G)), X, 
+             integ(G, B0, int = int))
+  C <- D %*% Ac
+  if (is.null(loc)) H <- C %*% t(B)
   else 
     H <- rowSums(C[loc$idx, , drop = FALSE] * B[loc$idy, , drop = FALSE])
   G <- A(H)
   cache <- mget(c('G', 'D', 'H'))
   return(cache)
-}
-pred. <- function(Ac, X, G, A, Bases, int, loc){ 
-  layers <- forw.prop(Ac, X, G, Bases, A, int, loc)
-  return(layers[[length(layers)]]$G)
 }
 pred <- function(Ac, X, G, A, Bases = NULL, pos = NULL, loc = NULL, int = NULL){
   if (!is.null(pos)) {
@@ -37,26 +32,21 @@ pred <- function(Ac, X, G, A, Bases = NULL, pos = NULL, loc = NULL, int = NULL){
     idx <- idx.names(loc$PTID, rownames(G))
     loc <- data.frame(idx = idx, idy = idy)
   }
-  return(pred.(Ac, X, G, A, Bases, int = int, loc))
+  layers <- forw.prop(Ac, X, G, Bases, A, int, loc)
+  return(layers[[length(layers)]]$G)
 }
 back.prop <- function(Y, Ac, layers, Bases, A, A.prime, int = F, id){
   grads <- list()
   n <- length(layers)
   Y.hat <- layers[[n]]$G
-  M <- c(Y.hat - Y) * Bases[[length(Bases)]][id$idy, ]/length(Y.hat)
+  M <- 2 * c(Y.hat - Y) * Bases[[length(Bases)]][id$idy, ]#/length(Y.hat)
   M. <- outer(1:max(id$idx), id$idx, "==") * 1
   M <- M. %*% M
-  grads[[n]] <- back.prop.(M, layers[[n]]$D, Ac[[n]])
+  grads[[n]] <- t(layers[[n]]$D) %*% M
   for (i in (n - 1):1) {
     M <- integ((M %*% t(Ac[[i + 1]][-1, ]) %*% t(Bases[[i + 1]])) *
                  A.prime[[i]](layers[[i]]$H), Bases[[i + 1]], int[[i]])
-    grads[[i]] <- back.prop.(M, layers[[i]]$D, Ac[[i]])
+    grads[[i]] <- t(layers[[i]]$D) %*% M
   }
   return(grads)
-}
-back.prop. <- function(M, D, Ac) {
-  dc. <- colSums(M)
-  dA. <- t(D) %*% M
-  grads. <- rbind(dc., dA.)
-  return(grads.)
 }

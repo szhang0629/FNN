@@ -25,12 +25,17 @@ forw.prop. <- function(Ac, G, B0, B, A, int, X = NULL, loc = NULL){
 }
 pred <- function(Ac, X, G, A, Bases = NULL, pos = NULL, loc = NULL, int = NULL){
   if (!is.null(pos)) {
-    int <- int.fun(Bases, int)
-    idy <- idx.names(subset(loc, select = -PTID))
-    Bases <- Bf2m(Bases, pos, subs(subset(loc, select = -PTID), 
-                                   match(1:max(idy), idy)))
-    idx <- idx.names(loc$PTID, rownames(G))
-    loc <- data.frame(idx = idx, idy = idy)
+    int <- lapply(Bases, is.basis)
+    if (is.list(loc)) {
+      idy <- idx.names(subset(loc, select = -PTID))
+      idx <- idx.names(loc$PTID, rownames(G))
+      Bases <- Bf2m(Bases, pos, subs(subset(loc, select = -PTID), 
+                                     match(1:max(idy), idy)))
+      loc <- data.frame(idx = idx, idy = idy)
+    } else {
+      Bases <- Bf2m(Bases, pos, loc)
+      loc <- NULL
+    }
   }
   layers <- forw.prop(Ac, X, G, Bases, A, int, loc)
   return(layers[[length(layers)]]$G)
@@ -39,9 +44,13 @@ back.prop <- function(Y, Ac, layers, Bases, A, A.prime, int = F, id){
   grads <- list()
   n <- length(layers)
   Y.hat <- layers[[n]]$G
-  M <- 2 * c(Y.hat - Y) * Bases[[length(Bases)]][id$idy, ]#/length(Y.hat)
-  M. <- outer(1:max(id$idx), id$idx, "==") * 1
-  M <- M. %*% M
+  if (!is.null(id)) {
+    M <- 2 * c(Y.hat - Y) * Bases[[length(Bases)]][id$idy, ]#/length(Y.hat)
+    M. <- outer(1:max(id$idx), id$idx, "==") * 1
+    M <- M. %*% M
+  } else {
+    M <- 2 * (Y.hat - Y) %*% Bases[[length(Bases)]]
+  }
   grads[[n]] <- t(layers[[n]]$D) %*% M
   for (i in (n - 1):1) {
     M <- integ((M %*% t(Ac[[i + 1]][-1, ]) %*% t(Bases[[i + 1]])) *

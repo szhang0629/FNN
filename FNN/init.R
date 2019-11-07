@@ -34,20 +34,6 @@ init. <- function(x) {
     else return(ncol(x[[1]]))
   }
 }
-int.fun <- function(fun, int = NULL) {
-  if (is.null(int)) {
-    if (is.list(fun) && !is.basis(fun)) {
-      result <- list()
-      for (i in 1:length(fun))
-        result[[i]] <- int.fun(fun[[i]])
-      return(result)
-    } else {
-      if (is.basis(fun)) return(TRUE)
-      else return(FALSE)
-    }
-  } else
-    return(int)
-}
 sigmoid <- function(x){
   (1 + exp(-x))^(-1)
 }

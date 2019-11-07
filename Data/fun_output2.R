@@ -13,14 +13,23 @@ Fun.Output.2 <- function(G, pos, index = NULL, n = 100,
   sample1 <- sample(1:bb1$nbasis, n, replace = T)
   sample2 <- sample(1:bb2$nbasis, n, replace = T)
   B0 <- eval.basis(pos, bb0)
-  # force(G)
-  func <- function(x1 = rep(0.5, nrow(G)), x2 = rep(0.5, nrow(G)), 
-                   i = 1:nrow(G)) {
+  # func <- function(x1 = rep(0.5, nrow(G)), x2 = rep(0.5, nrow(G)), 
+  #                  i = 1:nrow(G)) {
+  #   G. <- G[i, ,drop = FALSE]
+  #   y <- 0
+  #   for (j in 1:n) {
+  #     y <- y + cf[j] * (G.^ef[j] %*% B0[, sample0[j], drop = F]) *
+  #       (eval.basis(x1, bb1)[, sample1[j], drop = F] *
+  #          eval.basis(x2, bb2)[, sample2[j], drop = F])
+  #   }
+  #   return(y)
+  # }
+  func <- function(x1 = 0.5, x2 = 0.5, i = 1:nrow(G)) {
     G. <- G[i, ,drop = FALSE]
     y <- 0
     for (j in 1:n) {
-      y <- y + cf[j] * (G.^ef[j] %*% B0[, sample0[j], drop = F]) *
-        (eval.basis(x1, bb1)[, sample1[j], drop = F] *
+      y <- y + cf[j] * (G.^ef[j] %*% B0[, sample0[j], drop = F]) %*%
+        t(eval.basis(x1, bb1)[, sample1[j], drop = F] *
            eval.basis(x2, bb2)[, sample2[j], drop = F])
     }
     return(y)
@@ -50,9 +59,8 @@ gData.2 <- function(index, noise = 0.1, n = 200, p = 500, loc){
   set.seed(index)
   Data. <- Data.Input(n = n, p = p)
   f <- Fun.Output.2(Data.$G, Data.$pos, index)
-  Y <- f(loc$loc1, loc$loc2, loc$PTID)
+  Y <- f(loc$loc1, loc$loc2)
   Y <- Y + array(rnorm(prod(dim(Y))), dim = dim(Y))*noise
-  colnames(Y) <- "Y"
-  Data <- list(G = Data.$G, Y = cbind(loc, Y), pos = Data.$pos)
+  Data <- list(G = Data.$G, Y = Y, pos = Data.$pos)
   return(Data)
 }

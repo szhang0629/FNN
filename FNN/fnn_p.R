@@ -1,11 +1,23 @@
-FNN.p. <- function(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int) {
-  idy <- idx.names(subset(Y, select = -c(PTID, Y)))
-  Bases <- Bf2m(Bases, pos, subs(subset(Y, select = -c(PTID, Y)), 
-                                 match(1:max(idy), idy)))
-  idx <- idx.names(Y$PTID, rownames(G))
-  # Y <- data.frame(Y = Y$Y, idx = idx, idy = idy)
-  id <- data.frame(idx = idx, idy = idy)
-  Y <- Y$Y
+FNN.p. <- function(Y, X, G, Bases, A, lambda, pos, loc = NULL) {
+  P <- pen.Bases(Bases)
+  int <- lapply(Bases, is.basis)
+  
+  if (is.list(Y)) {
+    idy <- idx.names(subset(Y, select = -c(PTID, Y)))
+    idx <- idx.names(Y$PTID, rownames(G))
+    # Y <- data.frame(Y = Y$Y, idx = idx, idy = idy)
+    id <- data.frame(idx = idx, idy = idy)
+    Bases <- Bf2m(Bases, pos, subs(subset(Y, select = -c(PTID, Y)), 
+                                   match(1:max(idy), idy)))
+    Y <- Y$Y
+  } else {
+    Bases <- Bf2m(Bases, pos, loc)
+    id <- NULL
+  }
+  
+  e0 <- init(Bases, X.col = ncol(X), para.ub = 0)
+  output <- list(Ac = init(Bases, seed = 1, X.col = ncol(X)), eg = e0, ex = e0)
+  A.prime <- lapply(A, Deriv)
   
   j <- 0
   cache <- list(k = 0, error. = Inf)
@@ -14,7 +26,7 @@ FNN.p. <- function(Y, X, G, output, Bases, pos, A, A.prime, lambda, P, int) {
       error.g <- sum((Y - pred(output$Ac, X, G, A, Bases, loc = id, int = int))^2)
       error.p <- Error.p(output$Ac, P, lambda)
       error <- sum(error.g, error.p)
-      if (j %% 1000 == 0) {
+      if (j %% 100 == 0) {
         cat(error.g, error.p, j)
         cat("\n")
       }
@@ -47,17 +59,3 @@ idx.names <- function(df, nms = NULL) {
   }
   return(df)
 }
-# idx.names <- function(df, nms = NULL) {
-#   if (is.null(nms)) {
-#     if (is.data.frame(df)) {
-#       if (length(df) > 1) df <- 1:nrow(df)
-#       else df <- idx.names(unlist(df), unique(unlist(df)))
-#     } else df <- idx.names(df, unique(df))
-#   } else {
-#     nms <- unlist(nms)
-#     df. <- 1:length(nms)
-#     names(df.) <- nms
-#     df <- df.[as.character(df)]
-#   }
-#   return(df)
-# }

@@ -6,10 +6,10 @@ adadelta <- function(output, grads, lambda = 0, P = NULL, P0 = NULL,
   for (i in 1:length(grads)) {
     grads. <- pen.(output$Ac[[i]], grads[[i]], lambda, P[[i]])
     # grads. <- pen.(Ac[[i]], grads[[i]], lambda, P[i:(i + 1)])
-    output$eg.[[i]] <- rho * output$eg.[[i]] + (1 - rho) * (grads.)^2
-    dAc <- -RMS(output$ex.[[i]]) / RMS(output$eg.[[i]]) * grads.
-    # dAc <- - 10 * grads.
-    output$ex.[[i]] <- rho * output$ex.[[i]] + (1 - rho) * dAc^2
+    output$eg[[i]] <- rho * output$eg[[i]] + (1 - rho) * (grads.)^2
+    dAc <- -RMS(output$ex[[i]]) / RMS(output$eg[[i]]) * grads.
+    # dAc <- -0.003 * grads.
+    output$ex[[i]] <- rho * output$ex[[i]] + (1 - rho) * dAc^2
     output$Ac[[i]] <- output$Ac[[i]] + dAc
   }
   return(output)
@@ -42,8 +42,10 @@ pen. <- function(Ac, dAc, lambda = 0, P = 1) {
 }
 Error.p <- function(Ac, P, lambda) {
   result <- rep(0, length(Ac))
-  for (i in 1:length(Ac))
-    result[i] <- sum(Error.p.(Ac[[i]], P[[i]])*lambda)
+  for (i in 1:length(Ac)) {
+    if (lambda == 0) result[i] <- 0
+    else result[i] <- sum(Error.p.(Ac[[i]], P[[i]])*lambda)
+  }
   return(result)
 }
 Error.p. <- function(Ac, P) {

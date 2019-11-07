@@ -32,3 +32,10 @@ rep.row <- function(x,n){
 rep.col <- function(x,n){
   matrix(rep(x,each = n), ncol = n, byrow = TRUE)
 }
+Error <- function(Y.train, Y.test, Y.train., Y.test.) {
+  train <- cost.(Y.train, Y.train.)/cost.(Y.train)
+  test <- cost.(Y.test, Y.test.)/mean((Y.test - mean(Y.train))^2)
+  cor1 <- cor(Y.train, Y.train.)
+  cor2 <- cor(Y.test, Y.test.)
+  return(data.frame(train = train, test = test, cor1 = cor1, cor2 = cor2))
+}

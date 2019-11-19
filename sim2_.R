@@ -1,7 +1,7 @@
 source("source_.R")
 source('Data/fun_output2.R')
 ## aligned condition without loc
-sim2 <- function(seed, vari = 1, D = 3) {
+sim2 <- function(seed, vari = 1, D = 2) {
   vari. <- c("index", "train", "test", "cor1", "cor2", "lambda", "j")
   ipath. <- paste0("../4_Output/matrix/", vari, "/", seed, ".csv")
   set.seed(seed)
@@ -44,5 +44,4 @@ sim2 <- function(seed, vari = 1, D = 3) {
     prt(format(cbind(error, index = seed, lambda = nn.p$lambda, 
                      j = nn.p$j)[, vari.], digits = 4), ipath)
   }
-  print(read.csv(ipath), row.names = FALSE)
 }

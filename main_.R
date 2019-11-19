@@ -51,7 +51,7 @@ main <- function(seed, vari = 0, p = 200, D = 3, lambda. = 10^(-2:2)) {
     error <- Error(Y.train, Y.test, Y.train., Y.test.)
     prt(format(cbind(error, index = seed, j = 0, 
                      lambda = flm1.p$lambda)[, vari.], digits = 4), ipath)
-    print(read.csv(ipath), row.names = FALSE)
+    # print(read.csv(ipath), row.names = FALSE)
   }
   ipath <- paste0(ipath., "NN", D - 1, ".csv")
   Output.(rbind(vari.), ipath)
@@ -66,6 +66,6 @@ main <- function(seed, vari = 0, p = 200, D = 3, lambda. = 10^(-2:2)) {
     error <- Error(Y.train, Y.test, Y.train., Y.test.)
     prt(format(cbind(error, index = seed, lambda = nn.p$lambda, 
                      j = nn.p$j)[, vari.], digits = 4), ipath)
-    print(read.csv(ipath), row.names = FALSE)
+    # print(read.csv(ipath), row.names = FALSE)
   # }
 }

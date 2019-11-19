@@ -1,5 +1,5 @@
 source("source.R")
-main <- function(seed, vari = 0, p = 200, D = 3, lambda. = 10^(-2:2)) {
+main <- function(seed, vari = 0, p = 200, D = 3, ) {
   vari. <- c("index", "train", "test", "cor1", "cor2", "lambda", "j")
   if (vari == 0) {
     ipath <- paste0("../4_Output/Real2/FN", (D - 1), ".csv")
@@ -25,6 +25,7 @@ main <- function(seed, vari = 0, p = 200, D = 3, lambda. = 10^(-2:2)) {
     G <- as.matrix(read.csv("../2_Data/data_g.csv", row.names = 1))
     pos <- read.csv("../2_Data/data_pos.csv")$POS
     loc <- NULL
+    lambda. = 10^(-1:3)
   } else {
     ipath <- paste0("../4_Output/", p, "/", vari, "/FN", D - 1, ".csv")
     n <- 250
@@ -39,8 +40,8 @@ main <- function(seed, vari = 0, p = 200, D = 3, lambda. = 10^(-2:2)) {
     bbz <- create.bspline.basis(norder = 4, nbasis = 20)
     if (is.data.frame(loc)) Y$loc <- loc.scale(Y$loc, bbz)
     else loc <- loc.scale(loc, bbz)
-    
     X <- NULL
+    lambda. = 10^(-2:2)
   }
   if (is.data.frame(Y)) groups <- divide(Y$PTID, seed, "name")
   else groups <- divide(1:nrow(Y), seed)

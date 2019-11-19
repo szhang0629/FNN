@@ -18,19 +18,19 @@ fct <- function(G, pos, index = NULL, n = 20, iscale = T, align = T){
   sample2 <- sample(1:n2, n, replace = T)
   B1 <- eval.basis(pos, bb1)
   if (align) {
-    func <- function(x, i = 1:nrow(G)) {
+    func <- function(x = 0.5, i = 1:nrow(G)) {
       G. <- G[i, ,drop = FALSE]
       y <- 0
       for (i in 1:n) {
-        y <- y + cf1[i] * (G. %*% t(t(cos(af[i] * pos + caf[i]))) * 
+        y <- y + cf1[i] * (G. %*% t(t(cos(af[i] * pos + caf[i]))) %*%
                              t(cos(bf[i] *  x + cbf[i]))) + 
-          cf2[i] * (G. %*% B1[, sample1[i], drop = F]) *
+          cf2[i] * (G. %*% B1[, sample1[i], drop = F]) %*%
           t(eval.basis(x, bb2)[, sample2[i], drop = F])
       }
       return(y)
     }
   } else {
-    func <- function(x, i = 1:nrow(G)) {
+    func <- function(x = rep(0.5, nrow(G)), i = 1:nrow(G)) {
       G. <- G[i, ,drop = FALSE]
       y <- 0
       for (i in 1:n) {
@@ -43,6 +43,6 @@ fct <- function(G, pos, index = NULL, n = 20, iscale = T, align = T){
     }
   }
   force(func)
-  func <- scale.func(func, iscale)
+  func <- scale.func(func, iscale, align)
   return(func)
 }

@@ -26,7 +26,7 @@ forw.prop. <- function(Ac, G, B0, B, A, int, X = NULL, loc = NULL){
 pred <- function(Ac, X, G, A, Bases = NULL, pos = NULL, loc = NULL, int = NULL){
   if (!is.null(pos)) {
     int <- lapply(Bases, is.basis)
-    if (is.list(loc)) {
+    if (is.data.frame(loc)) {
       idy <- idx.names(subset(loc, select = -PTID))
       idx <- idx.names(loc$PTID, rownames(G))
       Bases <- Bf2m(Bases, pos, subs(subset(loc, select = -PTID), 
@@ -40,7 +40,7 @@ pred <- function(Ac, X, G, A, Bases = NULL, pos = NULL, loc = NULL, int = NULL){
   layers <- forw.prop(Ac, X, G, Bases, A, int, loc)
   return(layers[[length(layers)]]$G)
 }
-back.prop <- function(Y, Ac, layers, Bases, A, A.prime, int = F, id){
+back.prop <- function(Y, Ac, layers, Bases, A, A.prime, int = F, id = NULL){
   grads <- list()
   n <- length(layers)
   Y.hat <- layers[[n]]$G

@@ -1,6 +1,6 @@
 FNN.p. <- function(Y, X, G, Bases, A, lambda, pos, loc = NULL) {
   P <- pen.Bases(Bases)
-  int <- lapply(Bases, is.basis)
+  int <- lapply(Bases, is.list)
   
   if (is.list(Y)) {
     idy <- idx.names(subset(Y, select = -c(PTID, Y)))
@@ -38,8 +38,9 @@ FNN.p. <- function(Y, X, G, Bases, A, lambda, pos, loc = NULL) {
       else cache$k <- cache$k + 1
     }
     layers <- forw.prop(output$Ac, X, G, Bases, A, int = int, id)
-    grads <- back.prop(Y, output$Ac, layers, Bases, A, A.prime, int = int, id)
-    output <- adadelta(output, grads, lambda, P)
+    grads.g <- back.prop(Y, output$Ac, layers, Bases, A, A.prime, int = int, id)
+    grads.p <- pen(output$Ac, P, lambda)
+    output <- adadelta(output, grads.g, grads.p)
     j <- j + 1
   }
   # cat(j - 1, "\n")

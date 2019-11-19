@@ -42,8 +42,7 @@ scale.func.2 <- function(f, iscale = T){
   if (iscale) {
     n <- length(f())
     points <- (1:10 - 0.5) / 10
-    Y.fun <- f(rep(points, 10*n), rep(points, each = 10*n), 
-               rep(1:n, each = 100))
+    Y.fun <- f(points, points)
     Y.mean <- mean(Y.fun)
     Y.sd <- sqrt(cost.(Y.fun, rep.row(colMeans(Y.fun), nrow(Y.fun))))
     force(Y.mean)

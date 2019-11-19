@@ -6,7 +6,7 @@ cost <- function(Y, Ac, X, G, Bases, A, pos = NULL, loc = NULL){
   if (is.list(Y)) return(cost.(Y$Y, Y.hat))
   else return(cost.(Y, Y.hat))
 }
-FNN.p <- function(Y, X, G, Bases, A, lambda., pos, loc){
+FNN.p <- function(Y, X, G, Bases, A, lambda., pos, loc = NULL){
   I <- length(lambda.)
   if (I > 1) {
     if (is.data.frame(Y))

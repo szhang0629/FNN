@@ -33,9 +33,13 @@ rep.col <- function(x,n){
   matrix(rep(x,each = n), ncol = n, byrow = TRUE)
 }
 Error <- function(Y.train, Y.test, Y.train., Y.test.) {
-  train <- cost.(Y.train, Y.train.)/cost.(Y.train)
-  test <- cost.(Y.test, Y.test.)/mean((Y.test - mean(Y.train))^2)
-  cor1 <- cor(Y.train, Y.train.)
-  cor2 <- cor(Y.test, Y.test.)
+  if (is.data.frame(Y.train)) {
+    Y.train <- Y.train$Y
+    Y.test <- Y.test$Y
+  }
+  train <- cost.(c(Y.train), c(Y.train.))#/cost.(Y.train)
+  test <- cost.(c(Y.test), c(Y.test.))#/mean((Y.test - mean(Y.train))^2)
+  cor1 <- cor(c(Y.train), c(Y.train.))
+  cor2 <- cor(c(Y.test), c(Y.test.))
   return(data.frame(train = train, test = test, cor1 = cor1, cor2 = cor2))
 }

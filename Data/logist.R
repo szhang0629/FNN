@@ -8,7 +8,7 @@ fct <- function(G, pos, index = NULL, n = 20, iscale = T, align = T){
   bf <- runif(n, 0, 1)
   cbf <- runif(n, -pi, pi)
   if (align) {
-    func <- function(x, i = 1:nrow(G)) {
+    func <- function(x = 0.5, i = 1:nrow(G)) {
       G. <- G[i, ,drop = FALSE]
       y <- 0
       for (j in 1:n) {
@@ -19,7 +19,7 @@ fct <- function(G, pos, index = NULL, n = 20, iscale = T, align = T){
       return(y)
     }
   } else {
-    func <- function(x, i = 1:nrow(G)) {
+    func <- function(x = rep(0.5, nrow(G)), i = 1:nrow(G)) {
       G. <- G[i, ,drop = FALSE]
       y <- 0
       for (j in 1:n) {
@@ -31,6 +31,6 @@ fct <- function(G, pos, index = NULL, n = 20, iscale = T, align = T){
     }
   }
   force(func)
-  func <- scale.func(func, iscale)
+  func <- scale.func(func, iscale, align)
   return(func)
 }

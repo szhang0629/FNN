@@ -47,3 +47,14 @@ subs <- function(object, rows) {
   }
   return(object)
 }
+divide.cv <- function(IDs, seed = 629, n = 10) {
+  IDs <- gsub("\\..*", "", IDs)
+  ID <- unique(IDs)
+  N <- length(ID)
+  set.seed(seed)
+  idx <- sample(1:N)
+  groups <- list()
+  for (i in 1:n) 
+    groups[[i]] <- which(IDs %in% ID[idx[(round((i-1)*N/n) + 1):round(i*N/n)]])
+  return(groups)
+}

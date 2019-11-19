@@ -12,7 +12,10 @@ f2m <- function(bb, loc = NA) {
   if (is.numeric(bb) && length(bb) == 1) # B3
     return(diag(nrow = bb, ncol = bb))
   if (is.list(bb)) {
-    return(f2m(bb[[1]], loc$loc1) %x% f2m(bb[[2]], loc$loc2))
+    if ("bb0" %in% names(bb))
+      return(as.matrix(bdiag(f2m(bb[[1]], loc$pos1), f2m(bb[[2]], loc$pos2))))
+    return(f2m(bb[[1]], loc$loc1)[, rep(1:bb[[1]]$nbasis, bb[[2]]$nbasis)] * 
+      f2m(bb[[2]], loc$loc2)[, rep(1:bb[[2]]$nbasis, each = bb[[1]]$nbasis)])
   }
   if (is.null(bb))
     return(NULL)
@@ -42,12 +45,13 @@ loc.scale <- function(loc, bb, digit = NULL) {
   }
   loc <- (s1 - s0) * (loc - min(loc)) / (max(loc) - min(loc)) + s0
   if (!is.null(digit)) loc <- round(loc, digits = digit)
+  return(loc)
 }
 f2m. <- function(bb, loc) {
   if (!is.data.frame(loc)) {
-    # coef <- bb$nbasis^(1/2)
-    # B <- eval.basis(loc, bb) * coef
-    B <- eval.basis(loc, bb)
+    coef <- bb$nbasis^(1/2)
+    B <- eval.basis(loc, bb) * coef
+    # B <- eval.basis(loc, bb)
   } else if (length(loc) == 1 && is.data.frame(loc))
     B <- f2m.(bb, unlist(loc))
   else B <- (f2m.(bb, loc$loc) - f2m.(bb, loc$loc0))

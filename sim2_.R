@@ -2,8 +2,8 @@ source("source_.R")
 source('Data/fun_output2.R')
 ## aligned condition without loc
 sim2 <- function(seed, vari = 1, D = 2) {
-  vari. <- c("index", "train", "test", "cor1", "cor2", "lambda", "j")
-  ipath. <- paste0("../4_Output/matrix/", vari, "/", seed, ".csv")
+  vari. <- c("index", "train", "test", "mse1", "mse2", "cor1", "cor2", "lambda")
+  ipath. <- paste0("../4_Output/matrix/", vari, "/")
   set.seed(seed)
   n <- 250
   # loc <- data.frame(PTID = rep(1:n, each = 400), loc1 = rep(runif(1:400), n), 

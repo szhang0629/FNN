@@ -2,7 +2,7 @@ source("source.R")
 source('Data/fun_output2.R')
 ## aligned condition without loc
 sim2 <- function(seed, vari = 1, D = 2) {
-  vari. <- c("index", "train", "test", "cor1", "cor2", "lambda", "j")
+  vari. <- c("index", "train", "test", "mse1", "mse2", "cor1", "cor2", "lambda")
   ipath <- paste0("../4_Output/matrix/", vari, "/FN", D - 1, ".csv")
   set.seed(seed)
   n <- 250
@@ -17,7 +17,7 @@ sim2 <- function(seed, vari = 1, D = 2) {
   list2env(sep(mget(c('Y', 'X', 'G')), groups), envir = environment())
   Output.(rbind(vari.), ipath)
   if (!(seed %in% (read.csv(ipath)$index))) {
-    lambda. = 10^(-2:2)
+    lambda. = 10^(-3:1)
     A <- c(rep(list(sigmoid), D - 1), list(linear))
     la <- ceiling(ncol(G.train)*(1 - exp(-rankMatrix(G.train)/ncol(G.train))))
     lb <- floor(sqrt(la * 15 * 15))

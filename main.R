@@ -1,6 +1,6 @@
 source("source.R")
-main <- function(seed, vari = 0, p = 200, D = 2) {
-  vari. <- c("index", "train", "test", "cor1", "cor2", "lambda", "j")
+main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
+  vari. <- c("index", "train", "test", "mse1", "mse2", "cor1", "cor2", "lambda")
   if (vari == 0) {
     ipath <- paste0("../4_Output/Real2/FN", (D - 1), ".csv")
     Y <- read.csv("../2_Data/data_y.csv", as.is = TRUE)
@@ -33,7 +33,7 @@ main <- function(seed, vari = 0, p = 200, D = 2) {
     # loc <- data.frame(PTID = rep(1:n, each = 20), loc = runif(20*n))
     # loc <- data.frame(PTID = rep(1:n, each = 20), loc = rep(runif(20), n))
     loc <- runif(20)
-    Data <- gData(seed, noise = switch(vari, 0.3, 0.6, 1.2), n, p, loc, "linear")
+    Data <- gData(seed, noise = switch(vari, 0.3, 0.6, 1.2), n, p, loc, fct)
     list2env(Data, envir = environment())
     rownames(G) <- 1:n
     

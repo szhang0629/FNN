@@ -1,12 +1,5 @@
 cost. <- function(Y, Y.hat = NULL){
-  if (is.list(Y)) {
-    Y <- unlist(Y)
-    Y.hat <- unlist(Y.hat)
-  }
-  if (is.null(Y.hat))
-    return(mean(Y^2))
-  else
-    return(mean((Y - Y.hat)^2))
+  return(mean((Y - Y.hat)^2))
 }
 prt <- function(x, path, col.names = F) {
   write.table(x, path, append = T, quote = F, sep = ",", 
@@ -37,9 +30,21 @@ Error <- function(Y.train, Y.test, Y.train., Y.test.) {
     Y.train <- Y.train$Y
     Y.test <- Y.test$Y
   }
-  train <- cost.(c(Y.train), c(Y.train.))#/cost.(Y.train)
-  test <- cost.(c(Y.test), c(Y.test.))#/mean((Y.test - mean(Y.train))^2)
+  if (is.matrix(Y.train)) {
+    val <- colMeans(Y.train)
+    val1 <- cost.(Y.train, rep.row(val, nrow(Y.train)))
+    val2 <- cost.(Y.test, rep.row(val, nrow(Y.test)))
+  } else {
+    val <- mean(Y.train)
+    val1 <- cost.(Y.train, val)
+    val2 <- cost.(Y.test, val)
+  }
+  mse1 <- cost.(c(Y.train), c(Y.train.))
+  mse2 <- cost.(c(Y.test), c(Y.test.))
+  train <- mse1/val1
+  test <- mse2/val2
   cor1 <- cor(c(Y.train), c(Y.train.))
   cor2 <- cor(c(Y.test), c(Y.test.))
-  return(data.frame(train = train, test = test, cor1 = cor1, cor2 = cor2))
+  return(data.frame(train = train, test = test, mse1 = mse1, mse2 = mse2, 
+                    cor1 = cor1, cor2 = cor2))
 }

@@ -1,8 +1,9 @@
 cost. <- function(Y, Y.hat = NULL){
   return(mean((Y - Y.hat)^2))
 }
-prt <- function(x, path, col.names = F) {
-  print(x)
+prt <- function(x, path, col.names = F, pscn = F) {
+  if (pscn)
+    print(x)
   write.table(x, path, append = T, quote = F, sep = ",", 
               row.names = F, col.names = col.names)
 }

@@ -36,14 +36,10 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
     Data <- gData(seed, noise = switch(vari, 0.3, 0.6, 1.2), n, p, loc, fct)
     list2env(Data, envir = environment())
     rownames(G) <- 1:n
-    
-    # bbz <- create.bspline.basis(norder = 4, nbasis = 20)
-    
     if (is.data.frame(loc)) {
       bbz <- cbb(norder = 4, Y$loc, 20)
       # Y$loc <- loc.scale(Y$loc, bbz)
-    }
-    else {
+    } else {
       bbz <- cbb(norder = 4, loc, 20)
       # loc <- loc.scale(loc, bbz)
     }
@@ -54,9 +50,10 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
   else groups <- divide(1:nrow(Y), seed)
   list2env(sep(mget(c('Y', 'X', 'G')), groups), envir = environment())
   Output.(rbind(vari.), ipath)
-  # if (!(seed %in% (read.csv(ipath)$index))) {
+  if (!(seed %in% (read.csv(ipath)$index))) {
     A <- c(rep(list(sigmoid), D - 1), list(linear))
-    la <- ceiling(ncol(G.train)*(1 - exp(-rankMatrix(G.train)/ncol(G.train))))
+    # la <- ceiling(ncol(G.train)*(1 - exp(-rankMatrix(G.train)/ncol(G.train))))
+    la < 50
     l <- ceiling(sqrt(bbz$nbasis * la))
     # bb0 <- create.bspline.basis(norder = 4, nbasis = la)
     bb0 <- cbb(norder = 4, pos, la)
@@ -75,6 +72,6 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
     }
     error <- Error(Y.train, Y.test, Y.train., Y.test.)
     prt(format(cbind(error, index = seed, lambda = fnn.p$lambda, 
-                     j = fnn.p$j)[, vari.], digits = 4), ipath)
-  # }
+                     j = fnn.p$j)[, vari.], digits = 4), ipath, pscn = TRUE)
+  }
 }

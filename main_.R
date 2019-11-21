@@ -52,6 +52,16 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
     prt(format(cbind(error, index = seed, j = 0, 
                      lambda = flm1.p$lambda)[, vari.], digits = 4), ipath)
   }
+  if (is.numeric(loc) && length(loc) > 10) {
+    ipath <- paste0(ipath., "FLM2.csv")
+    Output.(rbind(vari.), ipath)
+    source("LM/flm2.R")
+    if (!("FLM2" %in% (read.csv(ipath)$method))) {
+      prt(format(cbind(Error.flm2(Y.train, G.train, Y.test, G.test, pos, loc), 
+                       index = seed, j = 0, lambda = 0)[, vari.], 
+                 digits = 4), ipath)
+    }
+  }
   ipath <- paste0(ipath., "NN", D - 1, ".csv")
   Output.(rbind(vari.), ipath)
   if (!(seed %in% (read.csv(ipath)$index))) {
@@ -59,12 +69,12 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
     A <- c(rep(list(sigmoid), D - 1), list(linear))
     E.train <- cbind(X.train, G.train)
     E.test <- cbind(X.test, G.test)
-    Bases <- c(list(ncol(E.train)), as.list(rep(15, D - 1)), list(lz))
+    Bases <- c(list(ncol(E.train)), as.list(rep(32, D - 1)), list(lz))
     nn.p <- NN.p(Y.train, E.train, Bases, A = A, lambda. = lambda.)
     Y.train. <- pred(nn.p$Ac, E.train, A)
     Y.test. <- pred(nn.p$Ac, E.test, A)
     error <- Error(Y.train, Y.test, Y.train., Y.test.)
     prt(format(cbind(error, index = seed, lambda = nn.p$lambda, 
-                     j = nn.p$j)[, vari.], digits = 4), ipath)
+                     j = nn.p$j)[, vari.], digits = 4), ipath, pscn = TRUE)
   }
 }

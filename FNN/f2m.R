@@ -3,7 +3,7 @@ f2m <- function(bb, loc = NA) {
     return(bb)
   if (is.basis(bb)) { # B2
     if (is.atomic(loc) && length(loc) == 1 && is.na(loc)) 
-      B <- f2m.(bb, ((1:(3*bb$nbasis)) - 0.5)/(3*bb$nbasis))
+      B <- f2m.(bb, ((1:(5*bb$nbasis)) - 0.5)/(5*bb$nbasis))
     else {
       B <- f2m.(bb, loc)
     }
@@ -19,6 +19,16 @@ f2m <- function(bb, loc = NA) {
   }
   if (is.null(bb))
     return(NULL)
+}
+f2m. <- function(bb, loc) {
+  if (!is.data.frame(loc)) {
+    coef <- bb$nbasis^(1/2)
+    B <- eval.basis(loc, bb) * coef
+    # B <- eval.basis(loc, bb)
+  } else if (length(loc) == 1 && is.data.frame(loc))
+    B <- f2m.(bb, unlist(loc))
+  else B <- (f2m.(bb, loc$loc) - f2m.(bb, loc$loc0))
+  return(B)
 }
 Bf2m <- function(fBases, pos = NA, loc = NA){
   Bases <- list()
@@ -47,13 +57,10 @@ loc.scale <- function(loc, bb, digit = NULL) {
   if (!is.null(digit)) loc <- round(loc, digits = digit)
   return(loc)
 }
-f2m. <- function(bb, loc) {
-  if (!is.data.frame(loc)) {
-    coef <- bb$nbasis^(1/2)
-    B <- eval.basis(loc, bb) * coef
-    # B <- eval.basis(loc, bb)
-  } else if (length(loc) == 1 && is.data.frame(loc))
-    B <- f2m.(bb, unlist(loc))
-  else B <- (f2m.(bb, loc$loc) - f2m.(bb, loc$loc0))
-  return(B)
+cbb <- function(norder, pos, nbasis = NA) {
+  pos <- sort(pos)
+  breaks. <- ceiling(seq(1, length(pos), length.out = nbasis - norder + 1))
+  breaks. <- pos[breaks.]
+  breaks <- (c(0, breaks.) + c(breaks., 1))/2
+  return(create.bspline.basis(breaks = breaks, norder = norder))
 }

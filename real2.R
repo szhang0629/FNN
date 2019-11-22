@@ -22,7 +22,7 @@ real2 <- function(seed, type = "r") {
   X.n <- NULL
   X.o <- NULL
   snp.name <- c("CHRNA5" ,"CHRNA3", "CHRNB4", "CHRNB3", "CHRNA6")[4]
-  data <- readRDS(paste0("../2_Data/", snp.name, "r.rds"))
+  data <- readRDS(paste0("../2_Data/", snp.name, type, ".rds"))
   G2.n <- as.matrix(data$X.n[, -1])
   G2.o <- as.matrix(data$X.o[, -1])
   pos2 <- data$pos

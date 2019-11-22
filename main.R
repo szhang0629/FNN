@@ -53,7 +53,7 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
   # if (!(seed %in% (read.csv(ipath)$index))) {
     A <- c(rep(list(sigmoid), D - 1), list(linear))
     # la <- ceiling(ncol(G.train)*(1 - exp(-rankMatrix(G.train)/ncol(G.train))))
-    la <- 50
+    la <- 20
     l <- ceiling(sqrt(bbz$nbasis * la))
     # bb0 <- create.bspline.basis(norder = 4, nbasis = la)
     bb0 <- cbb(norder = 4, pos, la)

@@ -36,28 +36,18 @@ pen <- function(Ac, P, lambda) {
   
   return(grads)
 }
-# pen. <- function(Ac, lambda) {
-#   n.w <- nrow(.P2)
-#   n <- nrow(Ac)
-#   row.A <- (n - n.w + 1):n
-#   row.c <- 1:(n - n.w)
-#   dc. <- subs(Ac, row.c) %*% .P2*lambda[2]*2
-#   dA. <- .P0 %*% subs(Ac, row.A) %*% .P2 * lambda[2]*2 +
-#     .P2 %*% subs(Ac, row.A) %*% .P0 * lambda[1]*2
-#   dAc. <- rbind(dc., dA.)
-#   return(dAc.)
-# }
 pen. <- function(Ac, P, lambda) {
   if (length(P) < 2) return(lambda * Ac)
   else {
-    n.w <- nrow(P$P2)
-    n <- nrow(Ac)
-    row.A <- (n - n.w + 1):n
-    row.c <- 1:(n - n.w)
-    dc. <- subs(Ac, row.c) %*% P$Pc * lambda[2] * 2
-    dA. <- 2 * lambda[2] * P$P0 %*% subs(Ac, row.A) %*% P$Q0 + 
-      2 * lambda[1] * P$P2 %*% subs(Ac, row.A) %*% P$Q2
-    return(rbind(dc., dA.))
+    # n.w <- nrow(P$P2)
+    # n <- nrow(Ac)
+    # row.A <- (n - n.w + 1):n
+    # row.c <- 1:(n - n.w)
+    # dc. <- subs(Ac, row.c) %*% P$Pc * lambda[2] * 2
+    # dA. <- 2 * lambda[2] * P$P0 %*% subs(Ac, row.A) %*% P$Q0 + 
+    #   2 * lambda[1] * P$P2 %*% subs(Ac, row.A) %*% P$Q2
+    # return(rbind(dc., dA.))
+    return(2 * lambda[2] * Ac %*% P$Pc)
   }
 }
 Error.p <- function(Ac, P, lambda) {
@@ -66,20 +56,21 @@ Error.p <- function(Ac, P, lambda) {
     if (length(lambda) == 1)
       result[i] <- sum(Error.p.(Ac[[i]], P[[i]], c(lambda, lambda)))
     else
-      result[i] <- sum(Error.p.(Ac[[i]], P[[i]], lambda[i:(i +1)]))
+      result[i] <- sum(Error.p.(Ac[[i]], P[[i]], lambda[i:(i + 1)]))
   }
   return(result)
 }
 Error.p. <- function(Ac, P, lambda) {
-  n.w <- nrow(P$P2)
-  n <- nrow(Ac)
-  row.A <- (n - n.w + 1):n
-  row.c <- 1:(n - n.w)
-  PA1 <- lambda[1] * sum(diag(subs(Ac, row.A) %*% P$Q2 %*% t(subs(Ac, row.A)) %*% P$P2))
-  PA0 <- lambda[2] * sum(diag(P$Q0 %*% t(subs(Ac, row.A)) %*% 
-                                P$P0 %*% subs(Ac, row.A)))
-  Pc <- lambda[2] * sum(diag(subs(Ac, row.c) %*% P$Pc %*% t(subs(Ac, row.c))))
-  return(c(PA1, PA0, Pc))
+  # n.w <- nrow(P$P2)
+  # n <- nrow(Ac)
+  # row.A <- (n - n.w + 1):n
+  # row.c <- 1:(n - n.w)
+  # PA1 <- lambda[1] * sum(diag(subs(Ac, row.A) %*% P$Q2 %*% t(subs(Ac, row.A)) %*% P$P2))
+  # PA0 <- lambda[2] * sum(diag(P$Q0 %*% t(subs(Ac, row.A)) %*% 
+  #                               P$P0 %*% subs(Ac, row.A)))
+  # Pc <- lambda[2] * sum(diag(subs(Ac, row.c) %*% P$Pc %*% t(subs(Ac, row.c))))
+  # return(c(PA1, PA0, Pc))
+  return(lambda[2] * Ac %*% P$Pc %*% t(Ac))
 }
 pen.fun <- function(bb, order = 2) {
   if (is.basis(bb)) {

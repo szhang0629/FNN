@@ -1,6 +1,6 @@
 source("source.R")
 main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
-  vari. <- c("index", "train", "test", "mse1", "mse2", "cor1", "cor2", "lambda")
+  vari. <- c("index", "train", "test", "mse1", "mse2", "cor1", "cor2")
   if (vari == 0) {
     ipath <- paste0("../4_Output/Real2/FN", (D - 1), ".csv")
     Y <- read.csv("../2_Data/data_y.csv", as.is = TRUE)
@@ -44,13 +44,13 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
       # loc <- loc.scale(loc, bbz)
     }
     X <- NULL
-    lambda. = 10^(-3:1)
+    lambda. = list(1, 10, 100, 1000)
   }
   if (is.data.frame(Y)) groups <- divide(Y$PTID, seed, "name")
   else groups <- divide(1:nrow(Y), seed)
   list2env(sep(mget(c('Y', 'X', 'G')), groups), envir = environment())
   Output.(rbind(vari.), ipath)
-  if (!(seed %in% (read.csv(ipath)$index))) {
+  # if (!(seed %in% (read.csv(ipath)$index))) {
     A <- c(rep(list(sigmoid), D - 1), list(linear))
     # la <- ceiling(ncol(G.train)*(1 - exp(-rankMatrix(G.train)/ncol(G.train))))
     la <- 50
@@ -71,7 +71,6 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
       Y.test. <- pred(fnn.p$Ac, X.test, G.test, A, Bases, pos, loc)
     }
     error <- Error(Y.train, Y.test, Y.train., Y.test.)
-    prt(format(cbind(error, index = seed, lambda = fnn.p$lambda, 
-                     j = fnn.p$j)[, vari.], digits = 4), ipath, pscn = TRUE)
-  }
+    prt(format(cbind(error, index = seed)[, vari.], digits = 4), ipath, pscn = TRUE)
+  # }
 }

@@ -23,8 +23,8 @@ FNN.p <- function(Y, X, G, Bases, A, lambda., pos, loc = NULL){
       j.[i] <- fnn.p$j
     }
     print(data.frame(j., subtr., valid.))
-    lambda <- lambda.[which.min(valid.)]
-  } else lambda <- lambda.
+    lambda <- lambda.[[which.min(valid.)]]
+  } else lambda <- lambda.[[1]]
   fnn.p <- FNN.p.(Y, X, G, Bases, A, lambda, pos, loc)
   return(list(Ac = fnn.p$Ac, lambda = lambda, j = fnn.p$j))
 }

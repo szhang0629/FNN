@@ -20,11 +20,12 @@ f2m <- function(bb, loc = NA) {
   if (is.null(bb))
     return(NULL)
 }
+c.fun <- function(bb) {
+  return(1/sum(diag(bsplinepen(bb, 0))))
+}
 f2m. <- function(bb, loc) {
   if (!is.data.frame(loc)) {
-    coef <- bb$nbasis^(1/2)
-    B <- eval.basis(loc, bb) * coef
-    # B <- eval.basis(loc, bb)
+    B <- eval.basis(loc, bb) * sqrt(c.fun(bb))
   } else if (length(loc) == 1 && is.data.frame(loc))
     B <- f2m.(bb, unlist(loc))
   else B <- (f2m.(bb, loc$loc) - f2m.(bb, loc$loc0))

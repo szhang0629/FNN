@@ -15,62 +15,53 @@ adadelta <- function(output, grads.g, grads.p, rho = 0.95) {
 ## ------matrix smooth------
 pen.Bases <- function(Bases.) {
   result <- list()
-  for (i in 1:(length(Bases.) - 1)) {
-    P2 <- pen.fun(Bases.[[i + 1]])
-    P0 <- pen.fun(Bases.[[i + 1]], 0)
-    P2. <- pen.fun(Bases.[[i]])
-    P0. <- pen.fun(Bases.[[i]], 0)
-    result[[i]] <- list(P2 = P2., P0 = P0., Q2 = P0, Q0 = P2, Pc = P2)
+  for (i in 1:(length(Bases.))) {
+    P2 <- pen.fun(Bases.[[i]])
+    P0 <- pen.fun(Bases.[[i]], 0)
+    result[[i]] <- list(P2 = P2, P0 = P0)
   }
   return(result)
 }
 pen <- function(Ac, P, lambda) {
   grads <- list()
-  if (length(lambda) == 1) {
-    for (i in 1:length(Ac)) 
-      grads[[i]] <- pen.(Ac[[i]], P[[i]], c(lambda, lambda))
-  } else {
-    for (i in 1:length(Ac)) 
-      grads[[i]] <- pen.(Ac[[i]], P[[i]], lambda[i:(i + 1)])
-  }
-  
+  if (length(lambda) == 1) 
+    lambda <- rep(lambda, length(P))
+  for (i in 1:length(Ac)) 
+    grads[[i]] <- pen.(Ac[[i]], P[i:(i + 1)], lambda[i:(i + 1)])
   return(grads)
 }
 pen. <- function(Ac, P, lambda) {
-  if (length(P) < 2) return(lambda * Ac)
-  else {
-    # n.w <- nrow(P$P2)
-    # n <- nrow(Ac)
-    # row.A <- (n - n.w + 1):n
-    # row.c <- 1:(n - n.w)
-    # dc. <- subs(Ac, row.c) %*% P$Pc * lambda[2] * 2
-    # dA. <- 2 * lambda[2] * P$P0 %*% subs(Ac, row.A) %*% P$Q0 + 
-    #   2 * lambda[1] * P$P2 %*% subs(Ac, row.A) %*% P$Q2
-    # return(rbind(dc., dA.))
-    return(2 * lambda[2] * Ac %*% P$Pc)
-  }
+  n.w <- nrow(P[[1]]$P0)
+  n <- nrow(Ac)
+  row.A <- (n - n.w + 1):n
+  row.c <- 1:(n - n.w)
+  dc. <- 2 * lambda[2] * subs(Ac, row.c) %*% P[[2]]$P2
+  dA. <- 2 * lambda[2] * P[[1]]$P0 %*% subs(Ac, row.A) %*% P[[2]]$P2 +
+    2 * lambda[1] * P[[1]]$P2 %*% subs(Ac, row.A) %*% P[[2]]$P0
+  return(rbind(dc., dA.))
+  # return(2 * lambda[2] * Ac %*% P[[2]]$P2)
 }
 Error.p <- function(Ac, P, lambda) {
   result <- rep(0, length(Ac))
-  for (i in 1:length(Ac)) {
-    if (length(lambda) == 1)
-      result[i] <- sum(Error.p.(Ac[[i]], P[[i]], c(lambda, lambda)))
-    else
-      result[i] <- sum(Error.p.(Ac[[i]], P[[i]], lambda[i:(i + 1)]))
-  }
+  if (length(lambda) == 1) 
+    lambda <- rep(lambda, length(P))
+  for (i in 1:length(Ac)) 
+    result[i] <- sum(Error.p.(Ac[[i]], P[i:(i + 1)], lambda[i:(i + 1)]))
   return(result)
 }
 Error.p. <- function(Ac, P, lambda) {
-  # n.w <- nrow(P$P2)
-  # n <- nrow(Ac)
-  # row.A <- (n - n.w + 1):n
-  # row.c <- 1:(n - n.w)
-  # PA1 <- lambda[1] * sum(diag(subs(Ac, row.A) %*% P$Q2 %*% t(subs(Ac, row.A)) %*% P$P2))
-  # PA0 <- lambda[2] * sum(diag(P$Q0 %*% t(subs(Ac, row.A)) %*% 
-  #                               P$P0 %*% subs(Ac, row.A)))
-  # Pc <- lambda[2] * sum(diag(subs(Ac, row.c) %*% P$Pc %*% t(subs(Ac, row.c))))
-  # return(c(PA1, PA0, Pc))
-  return(lambda[2] * Ac %*% P$Pc %*% t(Ac))
+  n.w <- nrow(P[[1]]$P0)
+  n <- nrow(Ac)
+  row.A <- (n - n.w + 1):n
+  row.c <- 1:(n - n.w)
+  PA1 <- lambda[1] * sum(diag(P[[1]]$P0 %*% subs(Ac, row.A) %*% P[[2]]$P2 %*%
+                                t(subs(Ac, row.A))))
+  PA0 <- lambda[2] * sum(diag(P[[2]]$P0 %*% t(subs(Ac, row.A)) %*%
+                                P[[1]]$P2 %*% subs(Ac, row.A)))
+  Pc <- lambda[2] * sum(diag(subs(Ac, row.c) %*% P[[2]]$P2
+                             %*% t(subs(Ac, row.c))))
+  return(c(PA1, PA0, Pc))
+  # return(lambda[2] * Ac %*% P[[2]]$P2 %*% t(Ac))
 }
 pen.fun <- function(bb, order = 2) {
   if (is.basis(bb)) {
@@ -81,14 +72,14 @@ pen.fun <- function(bb, order = 2) {
   } else if (is.list(bb)) {
     if ("bb0" %in% names(bb)) {
       if (order == 2) 
-        return(as.matrix(bdiag(bsplinepen(bb[[1]], 2), bsplinepen(bb[[2]], 2))))
+        return(as.matrix(bdiag(pen.fun(bb[[1]], 2), pen.fun(bb[[2]], 2))))
       else 
-        return(as.matrix(bdiag(bsplinepen(bb[[1]], 0), bsplinepen(bb[[2]], 0))))
+        return(as.matrix(bdiag(pen.fun(bb[[1]], 0), pen.fun(bb[[2]], 0))))
     }
     if (order == 2) 
-      return(bsplinepen(bb[[2]], 2) %x% bsplinepen(bb[[1]], 0)/1e6 +
-               bsplinepen(bb[[2]], 0) %x% bsplinepen(bb[[1]], 2)/1e6)
+      return(pen.fun(bb[[2]], 2) %x% pen.fun(bb[[1]], 0) +
+               pen.fun(bb[[2]], 0) %x% pen.fun(bb[[1]], 2))
     else 
-      return(bsplinepen(bb[[1]], order) %x% bsplinepen(bb[[2]], order))
+      return(pen.fun(bb[[1]], order) %x% pen.fun(bb[[2]], order))
   } else return(1)
 }

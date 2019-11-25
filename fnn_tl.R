@@ -1,23 +1,8 @@
 FNN.tl <- function(Y, X, G, Bases, A, lambda, pos, Ac.) {
-  # idy <- idx.names(subset(Y, select = -c(PTID, Y)))
-  # if (is.null(Y$loc)) {
-  #   fBases <- c(rep(list(.bb), length(lambda)), list(matrix(1, 1)))
-    # Bases <- Bf2m(fBases, pos, NULL)
-  #   id <- NULL
-  # } else {
-  #   fBases <- rep(list(.bb), length(lambda))
-  #   Bases <- Bf2m(fBases, pos, 
-  #                 subs(subset(Y, select = -c(PTID, Y)), match(1:max(idy), idy)))
-  #   idx <- idx.names(Y$PTID, rownames(G))
-  #   id <- data.frame(idx = idx, idy = idy)
-  # }
-  # Y <- Y$Y
-  
   P <- pen.Bases(Bases)
   int <- lapply(Bases, is.basis)
   Bases <- Bf2m(Bases, pos, NULL)
   e0 <- init(Bases, X.col = ncol(X), para.ub = 0)
-  # e0 <- rep(list(0), length(A))
   output <- list(Ac = Ac., eg = e0, ex = e0)
   A.prime <- lapply(A, Deriv)
   

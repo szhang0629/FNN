@@ -44,7 +44,8 @@ main <- function(seed, vari = 0, p = 200, D = 2, fct = "polyno") {
       # loc <- loc.scale(loc, bbz)
     }
     X <- NULL
-    lambda. = list(1, 10, 100, 1000)
+    lambda. = 10^(-3:1)
+    # lambda. = 1
   }
   if (is.data.frame(Y)) groups <- divide(Y$PTID, seed, "name")
   else groups <- divide(1:nrow(Y), seed)

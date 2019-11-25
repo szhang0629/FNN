@@ -35,7 +35,7 @@ real2 <- function(seed, type = "r") {
   A <- c(rep(list(sigmoid), 1), list(linear))
   
   D <- 2
-  lambda. = 10^(0:4)
+  lambda. = 10^(-1:3)
   Bases <- c(list(list(bb0 = .bb, bb0.1 = .bb)), rep(list(.bb), D - 1), list(1))
   fnn.p <- FNN.p(Y.train, X.train, G.train, Bases, A = A, lambda. = lambda., pos)
   Y.train. <- pred(fnn.p$Ac, X.train, G.train, A, Bases, pos)
@@ -53,7 +53,7 @@ real2 <- function(seed, type = "r") {
   Y.train. <- pred(fnn.tl$Ac, X.train, G.train, A, Bases, pos = pos)
   Y.test. <- pred(fnn.tl$Ac, X.test, G.test, A, Bases, pos = pos)
   error <- Error(Y.train, Y.test, Y.train., Y.test.)
-  output <- format(cbind(error, data.frame(method = paste0("TL", D-1)))
+  output <- format(cbind(error, data.frame(method = paste0("TL", D - 1)))
                    [, vari.], digits = 4)
   prt(output, ipath)
   
@@ -61,7 +61,7 @@ real2 <- function(seed, type = "r") {
   Y.train. <- pred(fnn.ml$Ac2, X.train, G.train, A, Bases, pos = pos)
   Y.test. <- pred(fnn.ml$Ac2, X.test, G.test, A, Bases, pos = pos)
   error <- Error(Y.train, Y.test, Y.train., Y.test.)
-  output <- format(cbind(error, data.frame(method = paste0("ML", D-1)))
+  output <- format(cbind(error, data.frame(method = paste0("ML", D - 1)))
                    [, vari.], digits = 4)
   prt(output, ipath)
   

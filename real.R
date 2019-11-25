@@ -4,27 +4,19 @@ source("fnn_ml.R")
 source("LM/flm.R")
 ## ------Bspline------
 .bb <- create.bspline.basis(norder = 4, nbasis = 15)
-real <- function(seed, snp.num = 4, type = "r") {
+real <- function(seed, snp.num = 1, type = "r") {
   vari. <- c("method", "train", "test", "mse1", "mse2", "cor1", "cor2")
   snp.name <- c("CHRNA5" ,"CHRNA3", "CHRNB4", "CHRNB3", "CHRNA6")[snp.num]
   ipath <- paste0("../4_Output/", snp.name, type, "/", seed, ".csv")
   Output.(rbind(vari.), ipath)
-  data <- readRDS(paste0("../2_Data/", snp.name, type, ".rds"))
+  data <- readRDS(paste0("../2_Data/", snp.name, ".rds"))
   list2env(data, envir = environment())
-  # Y.n$PTID <- rownames(Y.n)
-  # Y.o$PTID <- rownames(Y.o)
-  Y.n$Y <- as.numeric(Y.n$Y)
-  Y.o$Y <- as.numeric(Y.o$Y)
-  Y.n <- as.matrix(log(Y.n$Y + 1))
-  Y.o <- as.matrix(log(Y.o$Y + 1))
-  G.n <- as.matrix(X.n[, -1])
-  G.o <- as.matrix(X.o[, -1])
-  # X.n <- as.matrix(X.n[, 1])
-  # X.o <- as.matrix(X.o[, 1])
-  # rownames(X.n) <- rownames(G.n)
-  # rownames(X.o) <- rownames(G.o)
-  X.n <- NULL
-  X.o <- NULL
+  Y <- as.matrix(log(as.numeric(Y$Y) + 1))
+  groups <- list(o = (1:nrow(X))[(X$race == "WHITE")], 
+                 n = (1:nrow(X))[(X$race == "BLACK")])
+  X <- as.matrix(X[, "sex", drop = FALSE])
+  X <- NULL
+  list2env(sep(mget(c('Y', 'X', 'G')), groups), envir = environment())
   library(tidyverse)
   groups <- divide(1:nrow(Y.n), seed)
   list2env(sep(mget(c('Y.n', 'X.n', 'G.n')), groups), envir = environment())
@@ -38,7 +30,7 @@ real <- function(seed, snp.num = 4, type = "r") {
   prt(format(cbind(error, method = "FLM1", j = 0,
                    lambda = flm1.p$lambda)[, vari.], digits = 4), ipath)
   D <- 2
-  lambda. = 10^(0:4)
+  lambda. = 10^(-1:3)
   Bases <- c(list(.bb), rep(list(.bb), D - 1), list(1))
   fnn.p <- FNN.p(Y.train, X.train, G.train, Bases, A = A, lambda. = lambda., pos)
   Y.train. <- pred(fnn.p$Ac, X.train, G.train, A, Bases, pos)

@@ -21,7 +21,7 @@ f2m <- function(bb, loc = NA) {
     return(NULL)
 }
 c.fun <- function(bb) {
-  return(1/sum(diag(bsplinepen(bb, 0))))
+  return(bb$nbasis/sum(diag(bsplinepen(bb, 0))))
 }
 f2m. <- function(bb, loc) {
   if (!is.data.frame(loc)) {

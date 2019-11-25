@@ -26,7 +26,7 @@ FNN.p. <- function(Y, X, G, Bases, A, lambda, pos, loc = NULL) {
       error.g <- sum((Y - pred(output$Ac, X, G, A, Bases, loc = id, int = int))^2)
       error.p <- Error.p(output$Ac, P, lambda)
       error <- sum(error.g, error.p)
-      if (j %% 100 == 0) {
+      if (j %% 1000 == 0) {
         cat(error.g, error.p, j)
         cat("\n")
       }
@@ -43,7 +43,6 @@ FNN.p. <- function(Y, X, G, Bases, A, lambda, pos, loc = NULL) {
     output <- adadelta(output, grads.g, grads.p)
     j <- j + 1
   }
-  # cat(j - 1, "\n")
   return(list(Ac = cache$Ac., error = cache$error., j = cache$j.))
 }
 idx.names <- function(df, nms = NULL) {

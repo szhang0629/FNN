@@ -1,14 +1,12 @@
-init <- function(fBases, Ac = NULL, para.ub = 2, seed = NULL, X.col = 0){
-  if (is.null(X.col)) X.col <- 0
+init <- function(fBases, Ac = NULL, para.ub = 1, seed = NULL){
   if (is.null(Ac)) {
-    K <- init.(fBases[[1]]) + X.col
-    para.lb <- -para.ub
+    K <- init.(fBases[[1]])
     if (!is.null(seed))
       set.seed(seed)
     for (i in 2:length(fBases)) {
       K0 <- K
       K <- init.(fBases[[i]])
-      A. <- matrix(runif(K*K0, para.lb, para.ub), ncol = K)
+      A. <- matrix(rnorm(K*K0, sd = para.ub), ncol = K)
       c. <- rep(0, K)
       Ac. <- rbind(c., A.)
       Ac[[length(Ac) + 1]] <- Ac.
@@ -23,13 +21,4 @@ init. <- function(x) {
     else if (length(x) == 1) return(x)
     else return(length(x))
   }
-}
-sigmoid <- function(x){
-  (1 + exp(-x))^(-1)
-}
-linear <- function(x){
-  x
-}
-relu <- function(x){
-  (abs(x) + x) / 2
 }

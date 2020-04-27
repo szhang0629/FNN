@@ -9,7 +9,7 @@ Error.flm2 <- function(Y.train, G.train, Y.test, G.test, pos, loc){
   # nz <- ceiling(ncol(G.train)*(1-exp(-nrow(G.train)/ncol(G.train))))
   m1 <- pffr(Y ~ ff(X1, xind = pos
                     ,splinepars = list(bs = "ps", m = list(c(2, 1), c(2, 1)),
-                    k = c(50, 20))
+                    k = c(20, 20))
              ), yind = loc, data = data)
   # m1 <- pffr(Y ~ ff(X1, xind = pos), yind = loc, data = data, 
   #            bs.yindex = list(bs = "ps", k = round(10), m=c(2, 1)), 

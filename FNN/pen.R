@@ -12,14 +12,10 @@ adadelta <- function(output, grads.g, grads.p, rho = 0.95) {
   }
   return(output)
 }
-## ------matrix smooth------
-pen.Bases <- function(Bases.) {
+pen.Bases <- function(Bases) {
   result <- list()
-  for (i in 1:(length(Bases.))) {
-    P2 <- pen.fun(Bases.[[i]])
-    P0 <- pen.fun(Bases.[[i]], 0)
-    result[[i]] <- list(P2 = P2, P0 = P0)
-  }
+  for (i in 1:(length(Bases))) 
+    result[[i]] <- list(P2 = pen.fun(Bases[[i]]), P0 = pen.fun(Bases[[i]], 0))
   return(result)
 }
 pen <- function(Ac, P, lambda) {
@@ -33,12 +29,12 @@ pen <- function(Ac, P, lambda) {
 pen. <- function(Ac, P, lambda) {
   n.w <- nrow(P[[1]]$P0)
   n <- nrow(Ac)
-  row.A <- (n - n.w + 1):n
-  row.c <- 1:(n - n.w)
-  dc. <- 2 * lambda[2] * subs(Ac, row.c) %*% P[[2]]$P2
-  dA. <- 2 * lambda[2] * P[[1]]$P0 %*% subs(Ac, row.A) %*% P[[2]]$P2 +
-    2 * lambda[1] * P[[1]]$P2 %*% subs(Ac, row.A) %*% P[[2]]$P0
-  return(rbind(dc., dA.))
+  W <- Ac[(n - n.w + 1):n, , drop = FALSE]
+  b <- Ac[1:(n - n.w), , drop = FALSE]
+  dc <- 2 * lambda[2] * b %*% P[[2]]$P2
+  dA <- 2 * lambda[2] * P[[1]]$P0 %*% W %*% P[[2]]$P2 +
+    2 * lambda[1] * P[[1]]$P2 %*% W %*% P[[2]]$P0
+  return(rbind(dc, dA))
   # return(2 * lambda[2] * Ac %*% P[[2]]$P2)
 }
 Error.p <- function(Ac, P, lambda) {
@@ -52,34 +48,30 @@ Error.p <- function(Ac, P, lambda) {
 Error.p. <- function(Ac, P, lambda) {
   n.w <- nrow(P[[1]]$P0)
   n <- nrow(Ac)
-  row.A <- (n - n.w + 1):n
-  row.c <- 1:(n - n.w)
-  PA1 <- lambda[1] * sum(diag(P[[1]]$P0 %*% subs(Ac, row.A) %*% P[[2]]$P2 %*%
-                                t(subs(Ac, row.A))))
-  PA0 <- lambda[2] * sum(diag(P[[2]]$P0 %*% t(subs(Ac, row.A)) %*%
-                                P[[1]]$P2 %*% subs(Ac, row.A)))
-  Pc <- lambda[2] * sum(diag(subs(Ac, row.c) %*% P[[2]]$P2
-                             %*% t(subs(Ac, row.c))))
+  W <- Ac[(n - n.w + 1):n, , drop = FALSE]
+  b <- Ac[1:(n - n.w), , drop = FALSE]
+  PA1 <- lambda[2] * sum(diag(P[[1]]$P0 %*% W %*% P[[2]]$P2 %*% t(W)))
+  PA0 <- lambda[1] * sum(diag(P[[1]]$P2 %*% W %*% P[[2]]$P0 %*% t(W)))
+  Pc <- lambda[2] * sum(diag(b %*% P[[2]]$P2 %*% t(b)))
   return(c(PA1, PA0, Pc))
   # return(lambda[2] * Ac %*% P[[2]]$P2 %*% t(Ac))
 }
 pen.fun <- function(bb, order = 2) {
   if (is.basis(bb)) {
-    if (order == 2)
-      return(c.fun(bb)*bsplinepen(bb, order)/1e6)
-    else 
-      return(c.fun(bb)*bsplinepen(bb, order))
+    if (order == 2) {
+      return(c.fun(bb)*bsplinepen(bb, order)/(bb$nbasis)/1e5)
+      # return(c.fun(bb)*bsplinepen(bb, order)/1e6)
+    } else return(c.fun(bb)*bsplinepen(bb, order))
   } else if (is.list(bb)) {
-    if ("bb0" %in% names(bb)) {
-      if (order == 2) 
-        return(as.matrix(bdiag(pen.fun(bb[[1]], 2), pen.fun(bb[[2]], 2))))
-      else 
-        return(as.matrix(bdiag(pen.fun(bb[[1]], 0), pen.fun(bb[[2]], 0))))
-    }
+    if ("bb0" %in% names(bb)) 
+      return(as.matrix(bdiag(pen.fun(bb[[1]], order), pen.fun(bb[[2]], order))))
     if (order == 2) 
       return(pen.fun(bb[[2]], 2) %x% pen.fun(bb[[1]], 0) +
                pen.fun(bb[[2]], 0) %x% pen.fun(bb[[1]], 2))
     else 
       return(pen.fun(bb[[1]], order) %x% pen.fun(bb[[2]], order))
-  } else return(1)
+  } else {
+    if (order == 2) return(0)
+    else return(1)
+  }
 }

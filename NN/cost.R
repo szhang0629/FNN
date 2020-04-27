@@ -1,6 +1,5 @@
 cost <- function(Y, Ac, E, A){
   Y.hat <- pred(Ac, E, A)
-  if (is.data.frame(Y)) Y <- Y$Y
   result <- cost.(Y, Y.hat)
   return(result)
 }
@@ -15,7 +14,8 @@ Error.nn <- function(Y.train, E.train, Y.test, E.test, Bases, A, lambda.) {
 NN.p <- function(Y, X, Bases, A, lambda.){
   I <- length(lambda.)
   if (I > 1) {
-    if (is.list(Y)) groups <- divide(Y$PTID, names = c("subtr", "valid"))
+    if (!is.null(rownames(Y))) 
+      groups <- divide(rownames(Y), type = "name", names = c("subtr", "valid"))
     else groups <- divide(1:nrow(Y), names = c("subtr", "valid"))
     list2env(sep(mget(c('Y', 'X')), groups), envir = environment())
     error. <- rep(0, I)
@@ -23,6 +23,7 @@ NN.p <- function(Y, X, Bases, A, lambda.){
       Ac <- NN.p.(Y.subtr, X.subtr, Bases, A, lambda.[[i]])$Ac
       error.[i] <- cost(Y.valid, Ac, X.valid, A)
     }
+    print(error.)
     lambda <- lambda.[which.min(error.)]
   } else lambda <- lambda.
   nn.p <- NN.p.(Y, X, Bases, A, lambda)

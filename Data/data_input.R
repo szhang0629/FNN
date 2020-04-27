@@ -30,6 +30,7 @@ Data.Input <- function(n, p){
   loc <- loc[idx.trun]
   
   G <- as.matrix(geno) # get rid of individuals with no variability
+  # rownames(G) <- 1:nrow(G)
   pos <- (loc - loc[1])/(loc[length(loc)] - loc[1])
   
   return(list(G = G, pos = pos))

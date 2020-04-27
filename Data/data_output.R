@@ -27,8 +27,9 @@ scale.func <- function(f, iscale = T, align){
 }
 Data.Output <- function(f, loc, noise = 0.1){
   force(f)
-  if (is.data.frame(loc)) {
-    Y <- c(f(loc$loc, loc$PTID) + rnorm(length(loc$loc)) * noise)
+  if (is.matrix(loc)) {
+    Y <- matrix(c(f(loc, rownames(loc)) + rnorm(length(loc)) * noise))
+    rownames(Y) <- rownames(loc)
   }  else {
     if (is.numeric(loc)) {
       Y <- f(loc)

@@ -16,8 +16,7 @@ init <- function(fBases, Ac = NULL, para.ub = 1, seed = NULL, X.col = 0){
   return(Ac)
 }
 init. <- function(x) {
-  if (is.null(x))
-    return(0)
+  if (is.null(x)) return(0)
   if (is.basis(x))
     return(x$nbasis)
   if (is.numeric(x)) {

@@ -1,69 +1,78 @@
-source("source.R")
-source("fnn_tl.R")
-source("fnn_ml.R")
-source("LM/flm.R")
-## ------Bspline------
-.bb <- create.bspline.basis(norder = 4, nbasis = 15)
-.P0 <- bsplinepen(.bb, 0)
-.P2 <- bsplinepen(.bb, 2)/1e5
-real2 <- function(seed, type = "r") {
+real <- function(seed, HL = 1, gene.index = 1) {
   vari. <- c("method", "train", "test", "mse1", "mse2", "cor1", "cor2")
-  snp.name <- c("CHRNA5" ,"CHRNA3", "CHRNB4", "CHRNB3", "CHRNA6")[1]
-  ipath <- paste0("../4_Output/", type, "/", seed, ".csv")
+  snp.name <- c("CHRNA5" ,"CHRNA3", "CHRNB4", "CHRNB3", "CHRNA6")[gene.index]
+  ipath <- paste0("../4_Output/", snp.name, "/", seed, ".csv")
+  library(MASS)
+  library(fda)
+  library(Deriv)
+  source('Common/common.R')
+  source('Common/divide.R')
   Output.(rbind(vari.), ipath)
-  data <- readRDS(paste0("../2_Data/", snp.name, type, ".rds"))
-  list2env(data, envir = environment())
-  Y.n$Y <- as.numeric(Y.n$Y)
-  Y.o$Y <- as.numeric(Y.o$Y)
-  Y.n <- as.matrix(log(Y.n$Y + 1))
-  Y.o <- as.matrix(log(Y.o$Y + 1))
-  G.n <- as.matrix(X.n[, -1])
-  G.o <- as.matrix(X.o[, -1])
-  X.n <- NULL
-  X.o <- NULL
-  snp.name <- c("CHRNA5" ,"CHRNA3", "CHRNB4", "CHRNB3", "CHRNA6")[4]
-  data <- readRDS(paste0("../2_Data/", snp.name, type, ".rds"))
-  G2.n <- as.matrix(data$X.n[, -1])
-  G2.o <- as.matrix(data$X.o[, -1])
-  pos2 <- data$pos
-  pos <- list(pos1 = pos, pos2 = pos2)
-  G.n <- cbind(G.n, G2.n)
-  G.o <- cbind(G.o, G2.o)
-  library(tidyverse)
-  groups <- divide(1:nrow(Y.n), seed)
-  list2env(sep(mget(c('Y.n', 'X.n', 'G.n')), groups), envir = environment())
-  A <- c(rep(list(sigmoid), 1), list(linear))
-  
-  D <- 2
-  lambda. = 10^(-1:3)
-  Bases <- c(list(list(bb0 = .bb, bb0.1 = .bb)), rep(list(.bb), D - 1), list(1))
-  fnn.p <- FNN.p(Y.train, X.train, G.train, Bases, A = A, lambda. = lambda., pos)
-  Y.train. <- pred(fnn.p$Ac, X.train, G.train, A, Bases, pos)
-  Y.test. <- pred(fnn.p$Ac, X.test, G.test, A, Bases,  pos)
-  error <- Error(Y.train, Y.test, Y.train., Y.test.)
-  output <- format(cbind(error, data.frame(method = paste0("FN", D - 1)))
-                   [, vari.], digits = 4)
-  prt(output, ipath)
-  
-  lambda <- fnn.p$lambda
-  
-  fnn.p.o <- FNN.p.(Y.o, X.o, G.o, Bases, A = A, lambda, pos)
-  fnn.tl <- FNN.tl(Y.train, X.train, G.train, Bases, A = A,
-                   lambda = lambda, pos, fnn.p.o$Ac)
-  Y.train. <- pred(fnn.tl$Ac, X.train, G.train, A, Bases, pos = pos)
-  Y.test. <- pred(fnn.tl$Ac, X.test, G.test, A, Bases, pos = pos)
-  error <- Error(Y.train, Y.test, Y.train., Y.test.)
-  output <- format(cbind(error, data.frame(method = paste0("TL", D - 1)))
-                   [, vari.], digits = 4)
-  prt(output, ipath)
-  
-  fnn.ml <- FNN.ml(Y.o, X.o, G.o, Y.train, X.train, G.train, Bases, pos, A, lambda)
-  Y.train. <- pred(fnn.ml$Ac2, X.train, G.train, A, Bases, pos = pos)
-  Y.test. <- pred(fnn.ml$Ac2, X.test, G.test, A, Bases, pos = pos)
-  error <- Error(Y.train, Y.test, Y.train., Y.test.)
-  output <- format(cbind(error, data.frame(method = paste0("ML", D - 1)))
-                   [, vari.], digits = 4)
-  prt(output, ipath)
-  
+  X <- read.csv(paste0("../2_Data/", snp.name, "/x.csv"), row.names = 1)
+  G <- read.csv(paste0("../2_Data/", snp.name, "/g.csv"), row.names = 1)
+  Y <- read.csv(paste0("../2_Data/", snp.name, "/y.csv"), row.names = 1)
+  POS <- as.numeric(substring(colnames(G), 2))
+  pos <- (POS - min(POS))/(max(POS) - min(POS))
+  X[, "age_int"] <- (X[, "age_int"] - 13)/70
+  Y <- log(as.numeric(Y$Y) + 1)
+  Y <- as.matrix((Y - mean(Y))/sd(Y))
+  X <- as.matrix(X)
+  G <- as.matrix(G)
+  groups <- divide(1:nrow(Y), seed)
+  list2env(sep(mget(c('Y', 'X', 'G')), groups), envir = environment())
+  Output.(rbind(vari.), ipath)
+  if (!("FLM1" %in% (read.csv(ipath)$method))) {
+    source("LM/flm.R")
+    bb0 <- create.bspline.basis(norder = 4, nbasis = 8)
+    flm1.p <- flm1(Y.train, G.train, bb0, pos, X.train, lambda. = c(10^(-1:3)))
+    Y.train. <- pred.flm1(G.train, bb0, pos, flm1.p$para, X.train)
+    Y.test. <- pred.flm1(G.test, bb0, pos, flm1.p$para, X.test)
+    error <- Error(Y.train, Y.test, Y.train., Y.test.)
+    prt(format(cbind(error, method = "FLM1")[, vari.], digits = 4), ipath)
+  }
+  if (!(paste0("NN", HL) %in% (read.csv(ipath)$method))) {
+    source("NN/cost.R")
+    source("NN/nn_p.R")
+    source("NN/prop.R")
+    source("NN/init.R")
+    source("NN/update.R")
+    A <- c(rep(list(sigmoid), HL), list(linear))
+    E.train <- cbind(X.train, G.train)
+    E.test <- cbind(X.test, G.test)
+    Bases <- c(list(ncol(E.train)), as.list(rep(8, HL)), list(1))
+    nn.p <- NN.p(Y.train, E.train, Bases, A = A, lambda. = 10^(-1:3))
+    # nn.p <- NN.p(Y.train, E.train, Bases, A = A, lambda. = 0)
+    Y.train. <- pred(nn.p$Ac, E.train, A)
+    Y.test. <- pred(nn.p$Ac, E.test, A)
+    error <- Error(Y.train, Y.test, Y.train., Y.test.)
+    prt(format(cbind(error, method = paste0("NN", HL))[, vari.], digits = 4),
+        ipath)
+  }
+  # if (!(paste0("FN", HL) %in% (read.csv(ipath)$method))) {
+  #   source('FNN/f2m.R')
+  #   source('FNN/cost.R')
+  #   source('FNN/fnn_p.R')
+  #   source('FNN/init.R')
+  #   source('FNN/prop.R')
+  #   source('FNN/pen.R')
+  #   .bb <- create.bspline.basis(norder = 4, nbasis = 8)
+  #   A <- c(rep(list(sigmoid), HL), list(linear))
+  #   Bases <- c(list(.bb), rep(list(.bb), HL), list(.bb))
+  #   loc.train <- as.matrix(X.train[, "age_int"])
+  #   loc.test <- as.matrix(X.test[, "age_int"])
+  #   Y.train <- cbind(Y.train, loc.train)
+  #   Y.test <- cbind(Y.test, loc.test)
+  #   rownames(Y.train) <- rownames(G.train)
+  #   rownames(Y.test) <- rownames(G.test)
+  #   X.train <- X.train[, c("race", "sex")]
+  #   X.test <- X.test[, c("race", "sex")]
+  #   fnn.p <- FNN.p(Y.train, X.train, G.train, Bases, A, lambda.=10^(-1:3), pos)
+  #   Y.train. <- pred(fnn.p$Ac, X.train, G.train, A, Bases, pos, loc.train)
+  #   Y.test. <- pred(fnn.p$Ac, X.test, G.test, A, Bases, pos, loc.test)
+  #   error <- Error(Y.train[, 1, drop = FALSE], Y.test[, 1, drop = FALSE],
+  #                  Y.train., Y.test.)
+  #   prt(format(cbind(error, method = paste0("FN", HL))[, vari.], digits = 4),
+  #       ipath)
+  # }
   print(read.csv(ipath), row.names = FALSE)
 }

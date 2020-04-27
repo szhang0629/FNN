@@ -22,13 +22,15 @@ f2m <- function(bb, loc = NA) {
 }
 c.fun <- function(bb) {
   return(bb$nbasis/sum(diag(bsplinepen(bb, 0))))
+  # return(bb$nbasis)
+  # return(1)
 }
 f2m. <- function(bb, loc) {
-  if (!is.data.frame(loc)) {
-    B <- eval.basis(loc, bb) * sqrt(c.fun(bb))
-  } else if (length(loc) == 1 && is.data.frame(loc))
-    B <- f2m.(bb, unlist(loc))
-  else B <- (f2m.(bb, loc$loc) - f2m.(bb, loc$loc0))
+  if (!is.matrix(loc)) {
+    return(eval.basis(loc, bb) * sqrt(c.fun(bb)))
+  } else if (ncol(loc) == 1)
+    B <- f2m.(bb, c(loc))
+  else B <- (f2m.(bb, loc[, "loc"]) - f2m.(bb, loc[, "loc0"]))
   return(B)
 }
 Bf2m <- function(fBases, pos = NA, loc = NA){
@@ -41,27 +43,7 @@ Bf2m <- function(fBases, pos = NA, loc = NA){
   return(Bases = Bases)
 }
 integ <- function(D, B, int = T){
-  if (is.null(D))
-    return(NULL)
+  if (is.null(D)) return(NULL)
   if (int) return(as.matrix(D) %*% B / nrow(B))
   else return(as.matrix(D) %*% B)
-}
-loc.scale <- function(loc, bb, digit = NULL) {
-  if (bb$type == "bspline") {
-    s0 <- bb$params[norder(bb)]
-    s1 <- bb$params[length(bb$params) - norder(bb) + 1]
-  } else {
-    s0 <- 0
-    s1 <- 1
-  }
-  loc <- (s1 - s0) * (loc - min(loc)) / (max(loc) - min(loc)) + s0
-  if (!is.null(digit)) loc <- round(loc, digits = digit)
-  return(loc)
-}
-cbb <- function(norder, pos, nbasis = NA) {
-  pos <- sort(pos)
-  breaks. <- ceiling(seq(1, length(pos), length.out = nbasis - norder + 1))
-  breaks. <- pos[breaks.]
-  breaks <- (c(0, breaks.) + c(breaks., 1))/2
-  return(create.bspline.basis(breaks = breaks, norder = norder))
 }

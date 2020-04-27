@@ -5,14 +5,15 @@ divide <- function(IDs, seed = 629, type = "index", ratio = 0.8,
   N <- length(ID)
   set.seed(seed)
   idx <- sample(1:N)
+  train = list()
+  test = list()
   if (type == "name") {
-    train <- ID[sort(idx[1:round(ratio*N)])]
-    test <- ID[sort(idx[(round(ratio*N) + 1):N])]
-  } else {
-    train <- which(IDs %in% ID[idx[1:round(ratio*N)]])
-    test <- which(IDs %in% ID[idx[(round(ratio*N) + 1):N]])
+    train[[length(train) + 1]] <- ID[sort(idx[1:round(ratio*N)])]
+    test[[length(test) + 1]] <- ID[sort(idx[(round(ratio*N) + 1):N])]
   }
-  assign(names[[1]], train)
+  train[[length(train) + 1]] <- which(IDs %in% ID[idx[1:round(ratio*N)]])
+  test[[length(test) + 1]] <- which(IDs %in% ID[idx[(round(ratio*N) + 1):N]])
+  assign(names[[1]], train)##not finished
   assign(names[[2]], test)
   return(mget(names))
 }
@@ -31,21 +32,25 @@ sep <- function(objects, groups){
   }
   return(names.in.list)
 }
-subs <- function(object, rows) {
-  if (is.numeric(rows) || is.logical(rows))
-    return(object[rows, , drop = FALSE])
-  else {
-    if (is.data.frame(object)) {
-      name <- object$PTID
-      rows. <- name %in% rows
+subs <- function(object, rowss) {
+  if (is.null(nrow(object))) return(object)
+  for (rows in rowss) {
+    if (is.numeric(rows) || is.logical(rows)) {
+        return(object[rows, , drop = FALSE])
     } else {
-      name <- rownames(object)
-      name. <- sub("\\..*", "", name)
-      rows. <- name. %in% rows
+      if (is.data.frame(object)) {
+        name <- object$PTID
+        rows. <- name %in% rows
+      } else {
+        name <- rownames(object)
+        if (!is.null(name)) {
+          name. <- sub("\\..*", "", name)
+          rows. <- name. %in% rows
+        } else rows. <- FALSE
+      }
+      if (any(rows.)) return(object[rows., , drop = FALSE])
     }
-    return(subs(object, rows.))
   }
-  return(object)
 }
 divide.cv <- function(IDs, seed = 629, n = 10) {
   IDs <- gsub("\\..*", "", IDs)

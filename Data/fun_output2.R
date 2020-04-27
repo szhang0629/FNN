@@ -1,14 +1,13 @@
-Fun.Output.2 <- function(G, pos, index = NULL, n = 100,
-                       np = 10, nq = 10, iscale = T){
+Fun.Output.2 <- function(G, pos, index = NULL, n = 100, iscale = T){
   set.seed(index)
   cf <- runif(n, -2, 2)
   ef <- runif(n, 1/3, 3)
-  pos0 <- c(0, sort(runif(np)), 1)
-  loc1 <- c(0, sort(runif(nq)), 1)
-  loc2 <- c(0, sort(runif(nq)), 1)
-  bb0 <- create.bspline.basis(pos0, norder = 4)
-  bb1 <- create.bspline.basis(loc1, norder = 4)
-  bb2 <- create.bspline.basis(loc2, norder = 4)
+  pos0 <- (0:7)/8 + runif(8, 0.025, 0.1)
+  loc1 <- (0:7)/8 + runif(8, 0.025, 0.1)
+  loc2 <- (0:7)/8 + runif(8, 0.025, 0.1)
+  bb0 <- create.bspline.basis(rangeval = 0:1, breaks = pos0, norder = 4)
+  bb1 <- create.bspline.basis(rangeval = 0:1, breaks = loc1, norder = 4)
+  bb2 <- create.bspline.basis(rangeval = 0:1, breaks = loc2, norder = 4)
   sample0 <- sample(1:bb0$nbasis, n, replace = T)
   sample1 <- sample(1:bb1$nbasis, n, replace = T)
   sample2 <- sample(1:bb2$nbasis, n, replace = T)

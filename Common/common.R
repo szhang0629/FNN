@@ -28,10 +28,6 @@ rep.col <- function(x,n){
   matrix(rep(x,each = n), ncol = n, byrow = TRUE)
 }
 Error <- function(Y.train, Y.test, Y.train., Y.test.) {
-  if (is.data.frame(Y.train)) {
-    Y.train <- Y.train$Y
-    Y.test <- Y.test$Y
-  }
   if (is.matrix(Y.train)) {
     val <- colMeans(Y.train)
     val1 <- cost.(Y.train, rep.row(val, nrow(Y.train)))
@@ -49,4 +45,39 @@ Error <- function(Y.train, Y.test, Y.train., Y.test.) {
   cor2 <- cor(c(Y.test), c(Y.test.))
   return(data.frame(train = train, test = test, mse1 = mse1, mse2 = mse2, 
                     cor1 = cor1, cor2 = cor2))
+}
+cbb <- function(norder, pos, nbasis = NA) {
+  pos <- sort(pos)
+  breaks. <- ceiling(seq(1, length(pos), length.out = nbasis - norder + 1))
+  breaks. <- pos[breaks.]
+  breaks <- (c(0, breaks.) + c(breaks., 1))/2
+  return(create.bspline.basis(rangeval = 0:1, breaks = breaks, norder = norder))
+}
+seq. <- function(from, to, len) {
+  return(10^(seq(from, to, length.out = len + 2)))
+}
+# loc.scale <- function(loc, bb, digit = NULL) {
+#   if (bb$type == "bspline") {
+#     s0 <- bb$params[norder(bb)]
+#     s1 <- bb$params[length(bb$params) - norder(bb) + 1]
+#   } else {
+#     s0 <- 0
+#     s1 <- 1
+#   }
+#   loc <- (s1 - s0) * (loc - min(loc)) / (max(loc) - min(loc)) + s0
+#   if (!is.null(digit)) loc <- round(loc, digits = digit)
+#   return(loc)
+# }
+func.plot <- function(coef, basisobj) {
+  x <- (0:99)/100 + 0.005
+  plot(x, eval.basis(x, basisobj) %*% coef)
+}
+sigmoid <- function(x){
+  (1 + exp(-x))^(-1)
+}
+linear <- function(x){
+  x
+}
+relu <- function(x){
+  (abs(x) + x) / 2
 }

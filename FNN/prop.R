@@ -1,4 +1,4 @@
-forw.prop <- function(Ac, X, G, Bases, A, int, loc = NULL){
+forw.prop <- function(Ac, X, G, Bases, A, int){
   layers <- list()
   dp <- length(A)
   layers[[1]] <- forw.prop.(Ac[[1]], G, Bases[[1]], Bases[[2]], 
@@ -26,11 +26,10 @@ pred <- function(Ac, X, G, A, Bases, pos = NULL, loc = NULL, int = NULL){
   if (!is.null(pos)) {
     int <- lapply(Bases, is.basis)
     Bases <- Bf2m(Bases, pos, loc)
-    if (length(loc) > 0) {
+    if (length(loc) > 0) 
       rownames(Bases[[length(Bases)]]) <- idx.names(rownames(loc), rownames(G))
-    } 
-    layers <- forw.prop(Ac, X, G, Bases, A, int)
-  } else layers <- forw.prop(Ac, X, G, Bases, A, int, loc)
+  }
+  layers <- forw.prop(Ac, X, G, Bases, A, int)
   return(layers[[length(layers)]]$G)
 }
 back.prop <- function(Y, Ac, layers, Bases, A, A.prime, int){
